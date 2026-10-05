@@ -100,7 +100,7 @@ def _reel_follow_ups(ctx: TaskContext, username: str, brand_ready: bool) -> list
 
 def _niche_from(profile: Dict[str, Any], content: list, payload: Dict[str, Any]) -> Any:
     """Own words first; then Instagram's "Home Chef"-style hint; then the niche of whoever led us here."""
-    from ..api import _own_words
+    from ..profile_text import _own_words
     from ..niches import NICHES, primary_niche
 
     niche = primary_niche(_own_words(profile, content) + " " + str(payload.get("hint") or ""))
@@ -109,7 +109,7 @@ def _niche_from(profile: Dict[str, Any], content: list, payload: Dict[str, Any])
 
 
 def _india_from(profile: Dict[str, Any], content: list) -> list:
-    from ..api import _india
+    from ..profile_text import _india
 
     return _india(profile, content)
 

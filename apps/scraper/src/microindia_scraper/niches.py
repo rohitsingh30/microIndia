@@ -101,6 +101,21 @@ NICHES: Dict[str, Tuple[Tuple[str, ...], Tuple[str, ...]]] = {
 CITIES = ("delhi", "mumbai", "bangalore", "hyderabad", "chennai", "kolkata", "pune", "ahmedabad", "jaipur", "lucknow",
           "chandigarh", "kochi", "indore", "goa", "guwahati", "bhubaneswar", "surat", "coimbatore", "nagpur", "patna")
 
+# How a place is written (lowercase alias) -> the one city name we show and filter on.
+# The only city alias map in the system (profile_text uses it to place a creator).
+CITY_ALIASES: Dict[str, str] = {
+    "delhi": "Delhi", "new delhi": "Delhi", "dilli": "Delhi", "ncr": "Delhi NCR", "noida": "Delhi NCR", "gurgaon": "Delhi NCR", "gurugram": "Delhi NCR",
+    "mumbai": "Mumbai", "bombay": "Mumbai", "thane": "Mumbai", "bangalore": "Bengaluru", "bengaluru": "Bengaluru",
+    "hyderabad": "Hyderabad", "chennai": "Chennai", "kolkata": "Kolkata", "calcutta": "Kolkata", "pune": "Pune",
+    "ahmedabad": "Ahmedabad", "jaipur": "Jaipur", "lucknow": "Lucknow", "chandigarh": "Chandigarh", "indore": "Indore",
+    "kochi": "Kochi", "cochin": "Kochi", "trivandrum": "Thiruvananthapuram", "thiruvananthapuram": "Thiruvananthapuram",
+    "goa": "Goa", "surat": "Surat", "nagpur": "Nagpur", "bhopal": "Bhopal", "coimbatore": "Coimbatore", "guwahati": "Guwahati",
+    "bhubaneswar": "Bhubaneswar", "patna": "Patna", "vizag": "Visakhapatnam", "visakhapatnam": "Visakhapatnam",
+    "mysore": "Mysuru", "mysuru": "Mysuru", "dehradun": "Dehradun", "amritsar": "Amritsar", "ludhiana": "Ludhiana",
+    "kanpur": "Kanpur", "varanasi": "Varanasi", "madurai": "Madurai", "udaipur": "Udaipur", "jodhpur": "Jodhpur",
+    "kerala": "Kerala", "punjab": "Punjab",
+}
+
 
 def _compile() -> Tuple["re.Pattern[str]", Dict[str, str], List[Tuple[str, str]]]:
     """One alternation over every stem (longest first) plus a stem->niche map: one scan per text."""

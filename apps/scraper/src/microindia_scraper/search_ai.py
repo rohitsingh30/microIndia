@@ -32,14 +32,7 @@ CATEGORY_WORDS = {
 }
 LANGUAGES = {"hindi": "hi", "tamil": "ta", "telugu": "te", "malayalam": "ml", "bengali": "bn", "marathi": "mr",
              "kannada": "kn", "gujarati": "gu", "punjabi": "pa"}
-CITY_ALIASES = {
-    "delhi": "Delhi", "new delhi": "Delhi", "ncr": "Delhi NCR", "noida": "Delhi NCR", "gurgaon": "Delhi NCR",
-    "gurugram": "Delhi NCR", "mumbai": "Mumbai", "bombay": "Mumbai", "bangalore": "Bengaluru", "bengaluru": "Bengaluru",
-    "hyderabad": "Hyderabad", "chennai": "Chennai", "kolkata": "Kolkata", "pune": "Pune", "ahmedabad": "Ahmedabad",
-    "jaipur": "Jaipur", "lucknow": "Lucknow", "chandigarh": "Chandigarh", "indore": "Indore", "kochi": "Kochi",
-    "goa": "Goa", "surat": "Surat", "kerala": "Kerala", "punjab": "Punjab", "trivandrum": "Thiruvananthapuram",
-    "coimbatore": "Coimbatore", "guwahati": "Guwahati", "bhopal": "Bhopal", "nagpur": "Nagpur", "patna": "Patna",
-}
+from .niches import CITY_ALIASES  # the one city alias map
 
 _NUMBER = r"(\d+(?:\.\d+)?)\s*(k|m|lakh|lac|l)?"
 

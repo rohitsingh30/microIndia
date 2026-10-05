@@ -75,11 +75,17 @@ Rules: unknown is `null`, never `0`. Raw observations are never mutated. Every d
   - CLI: `python -m microindia_scraper.analysis reel <permalink|shortcode> [--force] | creator <handle> [--force] | eval [reels|creators|businesses|all] | local-search` (stub until the Local finder). `reel`/`creator` open their own tab on Chrome only when a reel has no cached media, and close it after.
 - **`llm.py`:** the only way to call a model: `claude -p --model sonnet|opus` with `--tools "" --setting-sources "" --strict-mcp-config --disable-slash-commands --no-session-persistence --system-prompt …` from a temp cwd (`--bare` is added only when `ANTHROPIC_API_KEY` is set, because `--bare` never uses the subscription login). Text: `--output-format json`; structured output arrives in the envelope's `structured_output`. Images: `--input-format stream-json` (requires `--output-format stream-json --verbose`), base64 image blocks, result in the last `type: result` line. Every call takes a `deadline` (waits and attempts are cut to fit; no attempt starts with under 60 s left) and runs in its own process group with `DISABLE_AUTOUPDATER=1`, killed whole on timeout. One retry, except when Claude is unavailable: that raises `LLMUnavailable` and sets `runtime_flags.llm_cooldown_until` (20 min) so later calls fail fast. A schema call without the schema's object is an error and is never cached. `MICROINDIA_LLM_SLOTS` (default 2) flock slots across processes (brand chat waits at most 5 s and doesn't retry), `llm_cache`, and `usage` rows `llm_calls`, `llm_seconds`, `llm_failures`, `llm_cache_hits`, `llm_cost_usd` per hour and per day. Brand chat (`search_ai`, `assistant`) uses it only with `MICROINDIA_LLM=on`, otherwise the rules/retrieval fallback.
 
-## API (`api.py`, port 8787)
-- **GET:** `/api/summary`, `/api/timeseries`, `/api/activity`, `/api/creators` (filters, CSV), `/api/creators/<handle>`, `/api/pipeline`, `/api/stats`, `/api/sources`, `/api/events`.
+## API (`api/` package, port 8787, `python -m microindia_scraper.api`)
+- **Layout:**
+  - `server.py`: `ThreadingHTTPServer`, with one thread per request and per SSE stream. It handles GET/POST/PATCH/DELETE, static `apps/dashboard/dist` with SPA fallback and an `is_relative_to` check, a 1 MB body limit (413), and the slow-request log.
+  - `router.py`: `@route(method, pattern)`, `Request`, `json`/`csv`/`file`, `Stream` (SSE), `HttpError`, `on_startup`.
+  - `repository.py`: `CreatorIndex`, the in-memory creator index. It rebuilds in the background when the data changes, which takes 5–15 s for about 8K creators.
+  - `ops.py`: the ops queries and routes.
+  - One module per route group: `creators.py`, `legacy_ai.py`, and stubs for `briefs`, `ask`, `shortlists`, `compare`, `media`, `events`, `local` and `ondemand`, which Phase 4 slices fill in.
+- **Shared text helpers** (own words, city, India evidence, languages) live in `profile_text.py`. The scraper imports them from there, never from the API.
+- **GET:** `/api/summary`, `/api/timeseries`, `/api/activity`, `/api/creators` (filters, CSV), `/api/creators/<handle>`, `/api/pipeline`, `/api/stats`, `/api/sources`, `/api/events` (SSE).
 - **POST:** `/api/actions/{unblock,retry,seed}`, `/api/search/chat`, `/api/assistant`.
-- An in-memory creator index rebuilds in the background when the data changes (5–15 s for about 7K creators).
-- **(building):** dossiers and reel analyses on `/api/creators/<handle>`, plus `/api/brief`, `/api/ask`, `/api/compare`, `/api/shortlists`, and a split into an `api/` package.
+- **(building, Phase 4):** brief, Ask AI, shortlists, compare, creator payload with dossier and reel analyses, on-demand analysis, and Local finder routes. See `docs/plans/phase-4-brand-app.md`.
 
 ## App (`apps/dashboard`)
 - Vite + React 18 + TanStack Query + Tailwind 4. Polls `/api/activity` every 3 s and `/api/summary` every 6 s.
