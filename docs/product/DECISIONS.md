@@ -4,6 +4,15 @@ Append-only, newest first. Each entry: date, decision, why, who decided. The pro
 
 ---
 
+## 2026-10-06 · Visual direction: Casebook, with Ledger's compact mode
+- **Decision:** build the app in direction B, **Casebook** (`docs/design/direction-b.html`).
+  - Reel evidence leads every creator card at a size you can judge.
+  - Schibsted Grotesk carries data and UI; Newsreader is used only for what the AI wrote.
+  - Primary actions are ink, and a single marigold highlighter marks the evidence behind each claim.
+- **Borrowed from Ledger:** dense rows as a "compact" toggle (for agency planners with 50–200 creators, and as the base of Discover's table), and its stricter numbers table on the creator page.
+- **Why:** the most direct answer to "looks childish". Its seriousness comes from editorial restraint, and evidence-first is the product's core promise.
+- **By:** Rohit
+
 ## 2026-10-06 · Owner answers on the specs
 - **Local finder has no launch slice.** No city or service preference: every small business the scraper meets gets profiled properly, and coverage grows as collection runs. The app shows honestly where it's deep. *Why:* build the dataset as we go instead of steering sourcing toward chosen cities.
 - **Creator size is a wide range with an upper cap only.** The Brief defaults to any size up to 100K. There's no meaningful floor, and the cap only keeps out accounts that are too famous or already very big. Brands can change it.

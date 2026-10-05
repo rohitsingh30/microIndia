@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction A · Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ===================== Direction A · Ledger · tokens ===================== */
+:root, .t-light {
+  /* surfaces + ink */
+  --bg: #F3F4F5;
+  --surface: #FFFFFF;
+  --surface-2: #EEF0F2;
+  --rule: #DCE0E4;
+  --rule-strong: #B8C0C8;
+  --ink: #14181C;
+  --ink-2: #48525C;
+  --ink-3: #69737D;
+  /* accent: peacock */
+  --accent: #00616A;
+  --accent-hover: #004C53;
+  --accent-ink: #FFFFFF;
+  --accent-wash: #E2EFF0;
+  /* semantic */
+  --good: #1D7438;  --good-wash: #E4F1E8;
+  --warn: #8A5700;  --warn-wash: #FAF0DA;
+  --bad:  #B3261E;  --bad-wash:  #FBE6E4;
+  --focus: #00616A;
+  /* reel keyframe placeholders */
+  --thumb-l1: 68%; --thumb-l2: 42%; --thumb-s: 16%;
+  /* mock annotation (not part of the product palette) */
+  --annot: #C2185B;
+  color-scheme: light;
+}
+.t-dark {
+  --bg: #0C0F11;
+  --surface: #13171A;
+  --surface-2: #1A1F23;
+  --rule: #283037;
+  --rule-strong: #3A444D;
+  --ink: #E7EBEE;
+  --ink-2: #AAB4BD;
+  --ink-3: #85909A;
+  --accent: #52C3C9;
+  --accent-hover: #7AD5D9;
+  --accent-ink: #04211F;
+  --accent-wash: #0E2A2C;
+  --good: #5DC27D;  --good-wash: #11251A;
+  --warn: #E2A94B;  --warn-wash: #2A2111;
+  --bad:  #F07A70;  --bad-wash:  #2D1513;
+  --focus: #52C3C9;
+  --thumb-l1: 40%; --thumb-l2: 22%; --thumb-s: 14%;
+  --annot: #F06292;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0C0F11; --surface: #13171A; --surface-2: #1A1F23; --rule: #283037; --rule-strong: #3A444D;
+    --ink: #E7EBEE; --ink-2: #AAB4BD; --ink-3: #85909A;
+    --accent: #52C3C9; --accent-hover: #7AD5D9; --accent-ink: #04211F; --accent-wash: #0E2A2C;
+    --good: #5DC27D; --good-wash: #11251A; --warn: #E2A94B; --warn-wash: #2A2111; --bad: #F07A70; --bad-wash: #2D1513;
+    --focus: #52C3C9; --thumb-l1: 40%; --thumb-l2: 22%; --thumb-s: 14%; --annot: #F06292;
+    color-scheme: dark;
+  }
+}
+:root {
+  /* type */
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --fs-micro: 11px;  /* mono labels, captions */
+  --fs-xs: 12px;     /* meta */
+  --fs-sm: 13px;     /* body, table cells (base) */
+  --fs-md: 15px;     /* lead text, AI answers */
+  --fs-lg: 18px;     /* section titles */
+  --fs-xl: 24px;     /* page titles */
+  --fs-2xl: 32px;    /* hero figures */
+  --lh-tight: 1.25; --lh-body: 1.5;
+  /* spacing (4px grid) */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  /* radius */
+  --r-1: 2px;   /* controls, chips, tags */
+  --r-2: 3px;   /* panels */
+  --r-round: 50%; /* avatars only */
+}
+
+/* ===================== base ===================== */
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 400 var(--fs-sm)/var(--lh-body) var(--font-sans);
+  -webkit-font-smoothing: antialiased; font-feature-settings: "tnum" 1;
+}
+.page { width: 1440px; margin: 0 auto; padding: 0 0 80px; }
+.mono { font-family: var(--font-mono); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-2); }
+.faint { color: var(--ink-3); }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+.label { font: 500 var(--fs-micro)/1.3 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+
+/* ===================== doc header ===================== */
+.doc { padding: 48px 48px 32px; border-bottom: 1px solid var(--rule); background: var(--surface); }
+.doc h1 { font-size: 32px; font-weight: 600; letter-spacing: -.01em; margin: 6px 0 12px; }
+.doc .lede { font-size: var(--fs-md); max-width: 880px; color: var(--ink-2); margin: 0 0 28px; }
+.doc .grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 40px; }
+.tok { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); }
+.tok th, .tok td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+.tok th { font: 500 var(--fs-micro) var(--font-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+.sw { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; }
+.sw i { width: 14px; height: 14px; border: 1px solid rgba(127,127,127,.35); border-radius: 2px; display: inline-block; }
+.typescale div { display: flex; align-items: baseline; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--rule); }
+.typescale span:first-child { width: 120px; flex: none; }
+.legend { display: flex; gap: 24px; margin-top: 20px; font-size: var(--fs-xs); color: var(--ink-2); align-items: center; }
+.legend .sample-demo { outline: 1.5px dashed var(--annot); outline-offset: 2px; padding: 0 6px; }
+
+/* ===================== screen frames ===================== */
+.screen-label { display: flex; gap: 12px; align-items: baseline; padding: 40px 24px 10px; }
+.screen-label b { font: 500 12px var(--font-mono); color: var(--ink); letter-spacing: .04em; }
+.screen-label span { font-size: var(--fs-xs); color: var(--ink-3); }
+.frame { background: var(--bg); border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong); }
+
+/* sample annotation */
+.sample { position: relative; outline: 1.5px dashed var(--annot); outline-offset: 3px; }
+.sample::after {
+  content: attr(data-sample); position: absolute; top: -10px; right: 8px; z-index: 2;
+  font: 500 9.5px/1.4 var(--font-mono); letter-spacing: .04em; text-transform: uppercase;
+  background: var(--annot); color: #fff; padding: 1px 5px; border-radius: 1px; white-space: nowrap;
+}
+
+/* ===================== app chrome ===================== */
+.topbar { height: 48px; display: flex; align-items: center; gap: 28px; padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--rule); }
+.wordmark { font-weight: 600; font-size: 15px; letter-spacing: -.01em; }
+.wordmark em { font-style: normal; color: var(--accent); }
+.nav { display: flex; gap: 22px; height: 100%; }
+.nav a { display: flex; align-items: center; text-decoration: none; color: var(--ink-2); height: 100%; border-bottom: 2px solid transparent; font-weight: 500; }
+.nav a.on { color: var(--ink); border-bottom-color: var(--accent); }
+.nav .count { font: 500 11px var(--font-mono); margin-left: 6px; color: var(--ink-3); }
+.topbar .right { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+.search { width: 260px; height: 30px; border: 1px solid var(--rule); border-radius: var(--r-1); background: var(--bg); display: flex; align-items: center; padding: 0 10px; color: var(--ink-3); gap: 8px; }
+.search kbd { margin-left: auto; font: 11px var(--font-mono); color: var(--ink-3); border: 1px solid var(--rule); padding: 0 4px; border-radius: 2px; }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border: 1px solid var(--rule-strong); background: var(--surface); border-radius: var(--r-1); font-weight: 500; font-size: var(--fs-sm); cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.quiet { border-color: transparent; background: transparent; color: var(--ink-2); padding: 0 8px; }
+.btn.sm { height: 26px; font-size: var(--fs-xs); padding: 0 9px; }
+.ico { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.6; flex: none; }
+
+.avatar { border-radius: var(--r-round); background: var(--surface-2); color: var(--ink-2); display: grid; place-items: center; font: 500 12px var(--font-mono); flex: none; border: 1px solid var(--rule); }
+
+/* fit labels: monochrome glyph + word, never colour alone */
+.fit { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; color: var(--ink); }
+.fit i { width: 9px; height: 9px; border: 1.5px solid var(--ink); display: inline-block; }
+.fit.strong i { background: var(--ink); }
+.fit.good i { background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); }
+.fit.look { color: var(--ink-2); font-weight: 500; }
+.fit.look i { border-color: var(--ink-3); }
+
+.tag { max-width: 100%; overflow: hidden; text-overflow: ellipsis; display: inline-block; align-items: center; gap: 4px; font: 500 10.5px/1 var(--font-mono); padding: 3px 5px; border-radius: var(--r-1); border: 1px solid var(--rule-strong); color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.tag.sponsored { border-color: var(--ink-2); color: var(--ink); }
+
+/* ratio vs usual */
+.vs { font: 500 12px var(--font-mono); white-space: nowrap; }
+.vs::before { content: ""; display: inline-block; width: 0; height: 0; margin-right: 4px; vertical-align: 1px; border-left: 4px solid transparent; border-right: 4px solid transparent; }
+.vs.up::before { border-bottom: 6px solid var(--good); }
+.vs.down::before { border-top: 6px solid var(--bad); }
+.vs.flat::before { width: 7px; height: 2px; background: var(--ink-3); border: 0; vertical-align: 3px; }
+
+/* reel keyframe placeholder */
+.thumb { position: relative; aspect-ratio: 9 / 16; border-radius: var(--r-1); overflow: hidden; flex: none;
+  background: linear-gradient(165deg, hsl(var(--h, 200) var(--thumb-s) var(--thumb-l1)), hsl(calc(var(--h, 200) + 25) calc(var(--thumb-s) + 6%) var(--thumb-l2))); }
+.thumb svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: rgba(255,255,255,.28); }
+.thumb .tc { position: absolute; left: 4px; bottom: 4px; font: 500 9px var(--font-mono); color: #fff; background: rgba(0,0,0,.45); padding: 1px 3px; border-radius: 1px; }
+.thumb.sq { aspect-ratio: 1 / 1; }
+
+/* ===================== screen 1: brief ===================== */
+.brief { display: grid; grid-template-columns: 340px 1fr; min-height: 1180px; }
+.rail { background: var(--surface); border-right: 1px solid var(--rule); padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+.rail h2 { font-size: var(--fs-sm); font-weight: 600; margin: 0; }
+.briefbox { border: 1px solid var(--rule-strong); border-radius: var(--r-1); padding: 10px 12px; font-size: var(--fs-sm); line-height: 1.55; background: var(--surface); }
+.briefbox .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--rule); }
+.understood { border: 1px solid var(--rule); border-radius: var(--r-2); }
+.understood header { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-bottom: 1px solid var(--rule); background: var(--surface-2); }
+.understood header b { font-size: var(--fs-sm); }
+.kv { display: grid; grid-template-columns: 104px 1fr; border-bottom: 1px solid var(--rule); align-items: start; }
+.kv:last-child { border-bottom: 0; }
+.kv dt { padding: 9px 0 9px 12px; }
+.kv dd { margin: 0; padding: 6px 10px 6px 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; padding: 2px 8px; line-height: 1.35; border: 1px solid var(--rule-strong); border-radius: var(--r-1); background: var(--surface); font-size: var(--fs-xs); cursor: pointer; }
+.chip:hover { border-color: var(--accent); }
+.chip.any { color: var(--ink-3); border-style: dashed; }
+.chip.off { color: var(--ink-3); background: var(--surface-2); border-color: var(--rule); cursor: not-allowed; }
+.chip .x { color: var(--ink-3); font-size: 11px; }
+.answered { font-size: var(--fs-xs); border-left: 2px solid var(--rule-strong); padding: 2px 0 2px 10px; color: var(--ink-2); }
+.answered b { color: var(--ink); font-weight: 500; }
+.stages { list-style: none; margin: 0; padding: 0; font-size: var(--fs-xs); }
+.stages li { display: grid; grid-template-columns: 18px 1fr auto; gap: 6px; padding: 4px 0; color: var(--ink-2); }
+.stages li b { color: var(--ink); font-weight: 600; }
+.stages .ok { color: var(--good); font-weight: 600; }
+.recent { font-size: var(--fs-xs); }
+.recent div { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+
+.main { padding: 20px 24px 120px; position: relative; }
+.res-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--rule-strong); }
+.res-head h1 { font-size: var(--fs-xl); font-weight: 600; margin: 0 0 4px; letter-spacing: -.01em; }
+.res-head .meta { font-size: var(--fs-xs); color: var(--ink-2); display: flex; gap: 14px; }
+.rev { font: 500 11px var(--font-mono); border: 1px solid var(--rule); padding: 2px 6px; border-radius: 2px; }
+.actions { display: flex; gap: 8px; }
+
+.banner { display: flex; align-items: center; gap: 14px; margin: 14px 0 0; padding: 10px 12px; background: var(--warn-wash); border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent); border-radius: var(--r-2); font-size: var(--fs-sm); }
+.banner .w { color: var(--warn); font-weight: 600; }
+.banner .widen { display: flex; gap: 6px; }
+.banner .widen .chip { background: var(--surface); }
+.banner .widen .chip b { font-family: var(--font-mono); font-weight: 500; }
+.banner .btn { margin-left: auto; }
+
+.thead, .row { display: grid; grid-template-columns: 48px 230px 1fr 92px; column-gap: 24px; }
+.thead { padding: 12px 0 8px; border-bottom: 1px solid var(--rule); }
+.row { padding: 16px 0 18px; border-bottom: 1px solid var(--rule); align-items: start; }
+.row:hover { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+.rk { display: flex; align-items: center; gap: 10px; padding-top: 2px; }
+.cbx { width: 14px; height: 14px; border: 1.5px solid var(--rule-strong); border-radius: 2px; background: var(--surface); flex: none; }
+.cbx.on { background: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--surface); }
+.rk .n { font: 500 13px var(--font-mono); color: var(--ink-3); }
+.who { display: flex; gap: 10px; }
+.who .nm { font-weight: 600; font-size: var(--fs-sm); line-height: 1.3; }
+.who .h { color: var(--ink-2); font-size: var(--fs-xs); }
+.who .loc { color: var(--ink-3); font-size: var(--fs-xs); margin: 2px 0 8px; }
+.why { font-size: var(--fs-md); line-height: 1.5; margin: 0 0 12px; max-width: 760px; }
+.why.pending { color: var(--ink-3); }
+.ev { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.ev .it { min-width: 0; display: grid; grid-template-columns: 44px minmax(0,1fr); gap: 9px; font-size: var(--fs-xs); line-height: 1.4; }
+.ev .it .top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 2px; }
+.ev .it .d { font: 11px var(--font-mono); color: var(--ink-3); }
+.ev .it .w { color: var(--ink-2); }
+.watch { margin-top: 12px; font-size: var(--fs-xs); display: flex; gap: 8px; align-items: baseline; }
+.watch b { color: var(--warn); font-weight: 600; white-space: nowrap; }
+.basis { margin-top: 10px; font-size: var(--fs-xs); color: var(--ink-3); font-style: italic; }
+.stats { font-size: var(--fs-xs); display: grid; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.stats .v { color: var(--ink); }
+.acts { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.hidden-row { padding: 12px 0; color: var(--ink-2); font-size: var(--fs-xs); border-bottom: 1px solid var(--rule); display: flex; gap: 10px; }
+.refine { margin-top: 20px; border: 1px solid var(--rule-strong); border-radius: var(--r-2); background: var(--surface); display: flex; align-items: center; padding: 6px 6px 6px 12px; gap: 10px; }
+.refine span { color: var(--ink-3); flex: 1; }
+.tray { position: absolute; left: 24px; right: 24px; bottom: 24px; height: 48px; background: var(--ink); color: var(--bg); border-radius: var(--r-2); display: flex; align-items: center; gap: 12px; padding: 0 8px 0 16px; font-weight: 500; }
+.tray .btn { background: transparent; color: var(--bg); border-color: color-mix(in srgb, var(--bg) 35%, transparent); }
+.tray .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tray .sp { flex: 1; }
+
+/* ===================== screen 2: dossier ===================== */
+.dhead { background: var(--surface); border-bottom: 1px solid var(--rule); padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+.dhead h1 { font-size: var(--fs-xl); font-weight: 600; margin: 0; letter-spacing: -.01em; }
+.dhead .sub { font-size: var(--fs-xs); color: var(--ink-2); display: flex; gap: 12px; margin-top: 3px; flex-wrap: wrap; }
+.dhead .sub span + span::before { content: "·"; margin-right: 12px; color: var(--ink-3); }
+.pill { font: 500 11px var(--font-mono); padding: 3px 7px; border-radius: var(--r-1); background: var(--good-wash); color: var(--good); border: 1px solid color-mix(in srgb, var(--good) 30%, transparent); white-space: nowrap; }
+.dhead .actions { margin-left: auto; }
+.dbody { padding: 24px; display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
+.sec { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-2); }
+.sec > header { display: flex; align-items: baseline; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--rule); }
+.sec > header h2 { margin: 0; font-size: var(--fs-sm); font-weight: 600; }
+.sec .pad { padding: 16px; }
+.inshort { font-size: 17px; line-height: 1.55; margin: 0; max-width: 820px; }
+.nums { width: 100%; border-collapse: collapse; }
+.nums td { padding: 11px 16px; border-bottom: 1px solid var(--rule); vertical-align: middle; font-size: var(--fs-sm); }
+.nums tr:last-child td { border-bottom: 0; }
+.nums td:first-child { width: 190px; color: var(--ink-2); }
+.nums .fig { font: 500 22px/1 var(--font-mono); width: 120px; white-space: nowrap; }
+.nums .fig small { font-size: 12px; color: var(--ink-3); margin-left: 3px; }
+.nums .say { color: var(--ink); }
+.nums .say .faint { display: block; font-size: var(--fs-xs); margin-top: 2px; }
+.nums .missing { color: var(--ink-3); }
+.strip { position: relative; width: 220px; height: 26px; }
+.strip .track { position: absolute; left: 0; right: 0; top: 12px; height: 2px; background: var(--rule-strong); }
+.strip .med { position: absolute; top: 6px; width: 1px; height: 14px; background: var(--ink-3); }
+.strip .dot { position: absolute; top: 7px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--surface); }
+.strip .ax { position: absolute; top: 18px; font: 9.5px var(--font-mono); color: var(--ink-3); }
+
+.brandtbl { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); }
+.brandtbl th { white-space: nowrap; text-align: left; font: 500 10.5px var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); padding: 8px 10px 6px; border-bottom: 1px solid var(--rule); }
+.brandtbl td { white-space: nowrap; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+.brandtbl tr:last-child td { border-bottom: 0; }
+.brandtbl td.r, .brandtbl th.r { text-align: right; }
+.fitlist { margin: 0; padding: 0; list-style: none; }
+.fitlist li { padding: 10px 16px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; gap: 10px; font-size: var(--fs-sm); }
+.fitlist li:last-child { border-bottom: 0; }
+.fitlist .c { font-size: var(--fs-xs); color: var(--ink-3); text-align: right; }
+
+.reels { grid-column: 1 / -1; }
+.reelgrid { display: grid; grid-template-columns: repeat(3, 1fr); }
+.reel { display: grid; grid-template-columns: 92px 1fr; gap: 14px; padding: 16px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.reel:nth-child(3n) { border-right: 0; }
+.reel:nth-last-child(-n+3) { border-bottom: 0; }
+.reel .top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.reel .d { font: 11px var(--font-mono); color: var(--ink-3); }
+.reel dl { margin: 0; display: grid; grid-template-columns: 62px 1fr; gap: 5px 8px; font-size: var(--fs-xs); line-height: 1.45; }
+.reel dt { font: 500 10px/1.8 var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); }
+.reel dd { margin: 0; }
+.reel dl.sample { margin-top: 16px; }
+.reel .hook { font-weight: 500; }
+.reel .open { margin-top: 10px; font-size: var(--fs-xs); color: var(--accent); text-decoration: none; display: inline-flex; gap: 4px; align-items: center; }
+.reel.low .why-l { color: var(--ink-2); }
+
+.pitch { grid-column: 1 / -1; }
+.pitch ol { margin: 0; padding: 0; list-style: none; counter-reset: p; }
+.pitch li { counter-increment: p; display: grid; grid-template-columns: 40px 1fr 300px; gap: 16px; padding: 14px 16px; border-bottom: 1px solid var(--rule); align-items: start; }
+.pitch li:last-child { border-bottom: 0; }
+.pitch li::before { content: counter(p, decimal-leading-zero); font: 500 13px var(--font-mono); color: var(--ink-3); padding-top: 2px; }
+.pitch .t { font-size: var(--fs-md); line-height: 1.5; }
+.cite { display: flex; gap: 8px; align-items: center; font-size: var(--fs-xs); color: var(--ink-2); }
+.cite .thumb { width: 22px; }
+.watchouts li { display: grid; grid-template-columns: 20px 1fr; gap: 6px; padding: 9px 16px; border-bottom: 1px solid var(--rule); font-size: var(--fs-xs); }
+.watchouts { list-style: none; margin: 0; padding: 0; }
+.watchouts li:last-child { border-bottom: 0; }
+.watchouts .m { color: var(--warn); font-weight: 600; }
+.about { grid-column: 1 / -1; font-size: var(--fs-xs); color: var(--ink-3); display: flex; gap: 18px; padding: 4px 0 0; }
+
+/* ===================== screen 3: phone ===================== */
+.phones { display: flex; gap: 56px; justify-content: center; padding: 40px 0 56px; align-items: flex-start; }
+.phonewrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.phonewrap .cap { font: 500 11px var(--font-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+.phone { width: 390px; border-radius: 34px; border: 10px solid #1B1E21; background: var(--bg); color: var(--ink); overflow: hidden; box-shadow: 0 1px 0 rgba(0,0,0,.04); font-size: 14px; }
+.phone .status { height: 30px; display: flex; justify-content: space-between; align-items: center; padding: 0 22px; font: 600 12px var(--font-sans); background: var(--surface); }
+.lbar { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--rule); }
+.lbar .wordmark { font-size: 14px; }
+.lbar .wordmark span { color: var(--ink-3); font-weight: 500; }
+.lbar a { font-size: 12px; color: var(--ink-2); text-decoration: none; }
+.lq { padding: 12px 16px 14px; background: var(--surface); border-bottom: 1px solid var(--rule); }
+.lq .box { border: 1px solid var(--rule-strong); border-radius: var(--r-1); padding: 9px 10px; font-size: 14px; line-height: 1.4; }
+.lq .lab { margin: 12px 0 6px; }
+.lchips { display: flex; flex-wrap: wrap; gap: 5px; }
+.lchip { display: inline-flex; align-items: baseline; gap: 5px; height: 26px; align-items: center; padding: 0 8px; border: 1px solid var(--rule-strong); border-radius: var(--r-1); font-size: 12.5px; background: var(--surface); }
+.lchip i { font: 500 9.5px var(--font-mono); font-style: normal; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
+.lres { padding: 12px 16px 6px; display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; }
+.lres b { font-size: 14px; }
+.near { padding: 0 16px 10px; font-size: 12px; color: var(--ink-2); }
+.near a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.bcard { margin: 0 12px 10px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-2); }
+.bcard .hd { display: flex; gap: 10px; padding: 12px 12px 8px; align-items: flex-start; }
+.bcard .nm { font-weight: 600; font-size: 14.5px; line-height: 1.25; }
+.bcard .hd .h { font-size: 12px; color: var(--ink-2); }
+.bcard .hd .act { margin-left: auto; text-align: right; font: 500 10.5px/1.3 var(--font-mono); color: var(--good); white-space: nowrap; }
+.bcard .whym { padding: 0 12px 10px; font-size: 13px; line-height: 1.45; }
+.bcard .port { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 0 12px; }
+.bcard .port figure { margin: 0; }
+.bcard .port figcaption { font-size: 10.5px; line-height: 1.3; color: var(--ink-2); margin-top: 4px; }
+.bcard .facts { margin: 10px 12px 0; border-top: 1px solid var(--rule); }
+.bcard .facts div { display: grid; grid-template-columns: 62px 1fr; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--rule); font-size: 12.5px; line-height: 1.4; }
+.bcard .facts div:last-child { border-bottom: 0; }
+.bcard .facts dt { font: 500 9.5px/1.9 var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); }
+.bcard .facts dd { margin: 0; }
+.bcard .facts .ask { color: var(--ink-2); }
+.flag { font-weight: 600; }
+.flag.okf { color: var(--good); }
+.flag.askf { color: var(--warn); }
+.bcard .cta { display: flex; gap: 6px; padding: 10px 12px 12px; }
+.bcard .cta .btn { height: 34px; font-size: 13px; }
+.bcard .cta .btn.primary { flex: 1; justify-content: center; }
+.lfoot { padding: 6px 16px 20px; font-size: 11.5px; color: var(--ink-3); line-height: 1.45; }
+.notes { width: 300px; font-size: var(--fs-xs); color: var(--ink-2); padding-top: 34px; }
+.notes h3 { font-size: var(--fs-sm); color: var(--ink); margin: 0 0 8px; }
+.notes p { margin: 0 0 12px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="kf-talk" viewBox="0 0 90 160"><circle cx="45" cy="64" r="15"/><path d="M14 132c0-26 14-42 31-42s31 16 31 42z"/></symbol>
+    <symbol id="kf-prod" viewBox="0 0 90 160"><circle cx="38" cy="60" r="14"/><path d="M8 130c0-24 13-38 30-38s28 12 30 32z"/><rect x="58" y="80" width="14" height="30" rx="3"/></symbol>
+    <symbol id="kf-two" viewBox="0 0 90 160"><circle cx="30" cy="66" r="12"/><path d="M6 130c0-20 10-34 24-34s24 14 24 34z"/><circle cx="62" cy="80" r="9"/><path d="M46 130c0-15 7-26 16-26s16 11 16 26z"/></symbol>
+    <symbol id="kf-text" viewBox="0 0 90 160"><rect x="14" y="52" width="62" height="7" rx="2"/><rect x="20" y="66" width="50" height="7" rx="2"/><rect x="26" y="80" width="38" height="7" rx="2"/><circle cx="45" cy="118" r="11"/></symbol>
+    <symbol id="cake" viewBox="0 0 100 100"><ellipse cx="50" cy="82" rx="36" ry="5"/><rect x="22" y="56" width="56" height="24" rx="3"/><rect x="31" y="36" width="38" height="19" rx="3"/><rect x="47" y="22" width="6" height="12" rx="2"/></symbol>
+    <symbol id="cake2" viewBox="0 0 100 100"><ellipse cx="50" cy="82" rx="38" ry="5"/><rect x="18" y="50" width="64" height="30" rx="14"/><circle cx="36" cy="40" r="7"/><circle cx="64" cy="40" r="7"/></symbol>
+    <symbol id="ext" viewBox="0 0 16 16"><path d="M6 3H3v10h10v-3M9 3h4v4M13 3L7 9"/></symbol>
+    <symbol id="srch" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></symbol>
+  </defs>
+</svg>
+
+<div class="page">
+
+<!-- ===================== DOC HEADER ===================== -->
+<section class="doc">
+  <div class="label">microIndia · visual direction A of 2 · 6 Oct 2026</div>
+  <h1>Ledger</h1>
+  <p class="lede">An analyst's desk, not a social app. The brand marketer and the agency planner are making a decision they will have to defend, so the screen behaves like a well-kept research ledger: hairline rules instead of floating cards, tabular figures set in a monospace so numbers line up and read as measured, and one colour (peacock, a deep teal with Indian roots that isn't the default SaaS blue or purple) reserved for action and selection. Density is high but calm: 13px base, a strict 4px grid, 2px corners, no shadows, no gradients outside reel keyframes. Fit is shown by a monochrome glyph plus a word, never by colour or a score. AI-written text sits at 15px in the same family, so it reads as the answer while the evidence sits beside it in smaller mono.</p>
+  <div class="grid">
+    <table class="tok">
+      <thead><tr><th>Token</th><th>Light</th><th>Dark</th><th>Used for</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">--bg</td><td><span class="sw"><i style="background:#F3F4F5"></i>#F3F4F5</span></td><td><span class="sw"><i style="background:#0C0F11"></i>#0C0F11</span></td><td>Page</td></tr>
+        <tr><td class="mono">--surface / -2</td><td><span class="sw"><i style="background:#FFFFFF"></i>#FFFFFF</span> <span class="sw"><i style="background:#EEF0F2"></i>#EEF0F2</span></td><td><span class="sw"><i style="background:#13171A"></i>#13171A</span> <span class="sw"><i style="background:#1A1F23"></i>#1A1F23</span></td><td>Panels, table heads</td></tr>
+        <tr><td class="mono">--rule / -strong</td><td><span class="sw"><i style="background:#DCE0E4"></i>#DCE0E4</span> <span class="sw"><i style="background:#B8C0C8"></i>#B8C0C8</span></td><td><span class="sw"><i style="background:#283037"></i>#283037</span> <span class="sw"><i style="background:#3A444D"></i>#3A444D</span></td><td>Hairlines, inputs</td></tr>
+        <tr><td class="mono">--ink / -2 / -3</td><td><span class="sw"><i style="background:#14181C"></i>#14181C</span> <span class="sw"><i style="background:#48525C"></i>#48525C</span> <span class="sw"><i style="background:#69737D"></i>#69737D</span></td><td><span class="sw"><i style="background:#E7EBEE"></i>#E7EBEE</span> <span class="sw"><i style="background:#AAB4BD"></i>#AAB4BD</span> <span class="sw"><i style="background:#85909A"></i>#85909A</span></td><td>Text, secondary, labels</td></tr>
+        <tr><td class="mono">--accent</td><td><span class="sw"><i style="background:#00616A"></i>#00616A</span></td><td><span class="sw"><i style="background:#52C3C9"></i>#52C3C9</span></td><td>Primary action, selection, focus, peer marker</td></tr>
+        <tr><td class="mono">--good</td><td><span class="sw"><i style="background:#1D7438"></i>#1D7438</span></td><td><span class="sw"><i style="background:#5DC27D"></i>#5DC27D</span></td><td>Above usual, active, confirmed</td></tr>
+        <tr><td class="mono">--warn</td><td><span class="sw"><i style="background:#8A5700"></i>#8A5700</span></td><td><span class="sw"><i style="background:#E2A94B"></i>#E2A94B</span></td><td>Watch out, thin results, ask first</td></tr>
+        <tr><td class="mono">--bad</td><td><span class="sw"><i style="background:#B3261E"></i>#B3261E</span></td><td><span class="sw"><i style="background:#F07A70"></i>#F07A70</span></td><td>Below usual, errors, conflicts</td></tr>
+        <tr><td class="mono">radius · spacing</td><td colspan="2" class="mono">2px controls · 3px panels · avatars round · 4 / 8 / 12 / 16 / 24 / 32 / 48</td><td>No pills, no shadows</td></tr>
+      </tbody>
+    </table>
+    <div>
+      <div class="label" style="margin-bottom:6px">Type: IBM Plex Sans + IBM Plex Mono (figures, labels)</div>
+      <div class="typescale">
+        <div><span class="mono faint">32 / 600</span><span style="font-size:32px;font-weight:600;letter-spacing:-.01em">4.0×</span></div>
+        <div><span class="mono faint">24 / 600</span><span style="font-size:24px;font-weight:600">Charu Patil</span></div>
+        <div><span class="mono faint">18 / 600</span><span style="font-size:18px;font-weight:600">Reels we looked at</span></div>
+        <div><span class="mono faint">15 / 400</span><span style="font-size:15px">Shows baby skincare inside her routine.</span></div>
+        <div><span class="mono faint">13 / 400 base</span><span style="font-size:13px">Above 83% of creators her size</span></div>
+        <div><span class="mono faint">12 / 400</span><span style="font-size:12px" class="muted">Last posted 6 days ago · 5 brand posts</span></div>
+        <div><span class="mono faint">11 mono caps</span><span class="label">Engagement vs peers</span></div>
+      </div>
+      <div class="legend">
+        <span><span class="sample-demo">dashed outline</span> = sample content. Reel analysis and creator pages don't exist yet; everything else is live data from 6 Oct.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SCREEN 1 ===================== -->
+<div class="screen-label"><b>01 · BRIEF → SHORTLIST</b><span>Desktop 1440 · /brief/:id · creators, numbers and captions are real; "why" lines and reel one-liners are sample AI output</span></div>
+<div class="frame">
+  <div class="topbar">
+    <span class="wordmark">micro<em>India</em></span>
+    <nav class="nav"><a class="on" href="#">Brief</a><a href="#">Discover</a><a href="#">Shortlists<span class="count">2</span></a></nav>
+    <div class="right">
+      <a href="#" style="color:var(--ink-2);text-decoration:none">Find a local business</a>
+      <div class="search"><svg class="ico"><use href="#srch"/></svg>Search creators<kbd>⌘K</kbd></div>
+    </div>
+  </div>
+
+  <div class="brief">
+    <aside class="rail">
+      <div>
+        <div class="label" style="margin-bottom:6px">Your brief</div>
+        <div class="briefbox">
+          Mom creators in Bengaluru and Chennai who do honest reviews of baby products, up to 50K followers. For our mineral baby sunscreen launch in November. Avoid anyone who's worked with Mamaearth.
+          <div class="foot"><span class="faint" style="font-size:12px">Revision 1 · 6 Oct, 11:42</span><button class="btn sm">Edit brief</button></div>
+        </div>
+      </div>
+
+      <div class="understood">
+        <header><b>Here's what I understood</b><span class="faint" style="font-size:12px">Click to change</span></header>
+        <dl style="margin:0">
+          <div class="kv"><dt class="label">What they make</dt><dd><span class="chip">Baby-product reviews</span><span class="chip">Mom life</span></dd></div>
+          <div class="kv"><dt class="label">Cities</dt><dd><span class="chip">Bengaluru <span class="x">×</span></span><span class="chip">Chennai <span class="x">×</span></span><span class="chip any">+ Add</span></dd></div>
+          <div class="kv"><dt class="label">Size</dt><dd><span class="chip">Up to 50K followers</span></dd></div>
+          <div class="kv"><dt class="label">Language</dt><dd><span class="chip off" title="Available once we've listened to their reels">Any · coming soon</span></dd></div>
+          <div class="kv"><dt class="label">Must have</dt><dd><span class="chip">Does honest product reviews</span></dd></div>
+          <div class="kv"><dt class="label">Avoid</dt><dd><span class="chip">Worked with Mamaearth</span></dd></div>
+          <div class="kv"><dt class="label">For</dt><dd><span class="chip">Baby sunscreen launch, November</span></dd></div>
+          <div class="kv"><dt class="label">How many</dt><dd><span class="chip">15</span></dd></div>
+        </dl>
+      </div>
+
+      <div class="answered">You answered: "What kind of content works for you?" → <b>Honest reviews</b></div>
+
+      <div>
+        <div class="label" style="margin-bottom:6px">Working on your brief</div>
+        <ul class="stages">
+          <li><span class="ok">✓</span><span>Understood your brief</span><span class="num faint">2s</span></li>
+          <li><span class="ok">✓</span><span>Found <b>9</b> creators in Bengaluru and Chennai with recent posts</span><span class="num faint">4s</span></li>
+          <li><span class="ok">✓</span><span>Read reels from the <b>9</b> closest fits</span><span class="num faint">31s</span></li>
+          <li><span class="ok">✓</span><span>Wrote why each one fits</span><span class="num faint">44s</span></li>
+        </ul>
+      </div>
+
+      <div class="recent">
+        <div class="label" style="margin-bottom:4px">Recent briefs</div>
+        <div><span>Baby sunscreen launch · Bengaluru + Chennai</span><span class="num faint">5</span></div>
+        <div><span>Diwali hampers · Hyderabad food</span><span class="num faint">12</span></div>
+      </div>
+    </aside>
+
+    <section class="main">
+      <div class="res-head">
+        <div>
+          <h1>Baby sunscreen launch · Bengaluru + Chennai</h1>
+          <div class="meta"><span><b class="num" style="color:var(--ink)">5</b> creators · from <b class="num" style="color:var(--ink)">9</b> in scope · 6 Oct</span><span class="rev">Rev 1 ▾</span></div>
+        </div>
+        <div class="actions">
+          <button class="btn">Ask AI about this list</button>
+          <button class="btn">Compare selected</button>
+          <button class="btn primary">Save all to a shortlist</button>
+        </div>
+      </div>
+
+      <div class="banner">
+        <span class="w">Only 5 creators fit everything.</span>
+        <span class="muted">Widen:</span>
+        <span class="widen"><span class="chip">+ Mumbai and Pune <b>7</b> more</span><span class="chip">Up to 100K followers <b>3</b> more</span></span>
+        <button class="btn sm">Find more for this brief</button>
+      </div>
+
+      <div class="thead">
+        <span class="label">#</span><span class="label">Creator</span><span class="label">Why they fit · evidence reels</span><span></span>
+      </div>
+
+      <!-- 1 -->
+      <div class="row">
+        <div class="rk"><span class="cbx on"></span><span class="n">01</span></div>
+        <div class="who"><div class="avatar" style="width:36px;height:36px">SH</div><div>
+          <div class="nm">Sheetal</div><div class="h">@samarshsaanchi.momlife</div>
+          <div class="loc">Bengaluru · 3.1K followers</div>
+          <span class="fit strong"><i></i>Strong fit</span><div class="stats">
+          <div><div class="label">Engagement</div><div class="v">Above 63% of creators her size</div></div>
+          <div><div class="label">Last posted</div><div class="v">Today</div></div>
+          <div><div class="label">Brand posts</div><div class="v"><span class="num">1</span> in last 18</div></div></div></div></div>
+        <div>
+          <p class="why sample" data-sample="sample: reel analysis">Films hands-on reviews of baby feeding and travel gear, and calls them "my honest review" in her own captions. Her diaper-bag capsule reel got 7× her usual likes.</p>
+          <div class="ev">
+            <div class="it"><div class="thumb" style="--h:28"><svg><use href="#kf-prod"/></svg><span class="tc">0:28</span></div><div><div class="top"><span class="d">25 Aug</span><span class="vs up">7.2×</span></div><div class="w">Diaper-bag capsule for first-time moms</div></div></div>
+            <div class="it"><div class="thumb" style="--h:190"><svg><use href="#kf-prod"/></svg><span class="tc">0:19</span></div><div><div class="top"><span class="d">18 Sep</span><span class="vs up">5.5×</span></div><div class="w">Mess-free baby food dispenser, travel test</div></div></div>
+            <div class="it"><div class="thumb" style="--h:140"><svg><use href="#kf-talk"/></svg><span class="tc">0:34</span></div><div><div class="top"><span class="d">18 Sep</span><span class="vs up">5.0×</span><span class="tag">Collab · GoodsCity</span></div><div class="w">One steamer, three uses for a new mom</div></div></div>
+          </div>
+          <div class="watch"><b>Watch out</b><span>Most of her comments come from "comment LINK" prompts (2,080 on one reel). Judge her by likes, not comments.</span></div>
+        </div>
+        <div class="acts"><button class="btn sm">Save</button><button class="btn sm">Open</button><button class="btn sm quiet">Not a fit</button></div>
+      </div>
+
+      <!-- 2 -->
+      <div class="row">
+        <div class="rk"><span class="cbx on"></span><span class="n">02</span></div>
+        <div class="who"><div class="avatar" style="width:36px;height:36px">CP</div><div>
+          <div class="nm">Charu Patil</div><div class="h">@thecharupatil</div>
+          <div class="loc">Bengaluru · 34K followers</div>
+          <span class="fit strong"><i></i>Strong fit</span><div class="stats">
+          <div><div class="label">Engagement</div><div class="v">Above 83% of creators her size</div></div>
+          <div><div class="label">Last posted</div><div class="v">6 days ago</div></div>
+          <div><div class="label">Brand posts</div><div class="v"><span class="num">5</span> in last 17</div></div></div></div></div>
+        <div>
+          <p class="why sample" data-sample="sample: reel analysis">Shows baby skincare inside her real routine as a new mom, and her paid work lands: sponsored posts get 4× her usual engagement. Her baby-lotion reel for dry skin got 4.3× her usual likes.</p>
+          <div class="ev">
+            <div class="it"><div class="thumb" style="--h:20"><svg><use href="#kf-prod"/></svg><span class="tc">0:41</span></div><div><div class="top"><span class="d">Date —</span><span class="vs up">4.3×</span><span class="tag sponsored">Sponsored · Himalaya</span></div><div class="w">Baby lotion for extra-dry skin</div></div></div>
+            <div class="it"><div class="thumb" style="--h:205"><svg><use href="#kf-two"/></svg><span class="tc">0:52</span></div><div><div class="top"><span class="d">6 Sep</span><span class="vs up">1.6×</span></div><div class="w">"How I manage without a nanny": her routine</div></div></div>
+            <div class="it"><div class="thumb" style="--h:330"><svg><use href="#kf-prod"/></svg><span class="tc">0:24</span></div><div><div class="top"><span class="d">29 Sep</span><span class="vs flat">1.3×</span><span class="tag sponsored">Sponsored · Sebamed</span></div><div class="w">Baby face wipes for drool days</div></div></div>
+          </div>
+          <div class="watch"><b>Watch out</b><span>Did a paid post for Himalaya Baby (date not captured). Possible conflict for a baby skincare launch.</span></div>
+        </div>
+        <div class="acts"><button class="btn sm">Save</button><button class="btn sm">Open</button><button class="btn sm quiet">Not a fit</button></div>
+      </div>
+
+      <!-- 3 -->
+      <div class="row">
+        <div class="rk"><span class="cbx"></span><span class="n">03</span></div>
+        <div class="who"><div class="avatar" style="width:36px;height:36px">PS</div><div>
+          <div class="nm">@dr.priyashivalli_pediatrician</div><div class="h">Name not on profile</div>
+          <div class="loc">Bengaluru · 10K followers</div>
+          <span class="fit good"><i></i>Good fit</span><div class="stats">
+          <div><div class="label">Engagement</div><div class="v">Above 74% of creators her size</div></div>
+          <div><div class="label">Last posted</div><div class="v">4 days ago</div></div>
+          <div><div class="label">Brand posts</div><div class="v">None seen in last 18</div></div></div></div></div>
+        <div>
+          <p class="why sample" data-sample="sample: reel analysis">A Bengaluru paediatrician with 22 years' practice who busts parenting myths on camera. A doctor's word carries weight for a baby sunscreen, but she hasn't reviewed a product yet.</p>
+          <div class="ev">
+            <div class="it"><div class="thumb" style="--h:160"><svg><use href="#kf-talk"/></svg><span class="tc">1:02</span></div><div><div class="top"><span class="d">24 Sep</span><span class="vs up">8.9×</span></div><div class="w">"Skip the magic immunity syrups"</div></div></div>
+            <div class="it"><div class="thumb" style="--h:215"><svg><use href="#kf-text"/></svg><span class="tc">0:48</span></div><div><div class="top"><span class="d">23 Sep</span><span class="vs up">1.5×</span></div><div class="w">"My child keeps falling sick" explainer</div></div></div>
+            <div class="it"><div class="thumb" style="--h:180"><svg><use href="#kf-talk"/></svg><span class="tc">0:55</span></div><div><div class="top"><span class="d">1 Oct</span><span class="vs flat">1.3×</span></div><div class="w">Hand, foot and mouth disease: what to do</div></div></div>
+          </div>
+        </div>
+        <div class="acts"><button class="btn sm">Save</button><button class="btn sm">Open</button><button class="btn sm quiet">Not a fit</button></div>
+      </div>
+
+      <!-- 4 -->
+      <div class="row">
+        <div class="rk"><span class="cbx"></span><span class="n">04</span></div>
+        <div class="who"><div class="avatar" style="width:36px;height:36px">NR</div><div>
+          <div class="nm">Nikita Ravi</div><div class="h">@motherhoodbynikita</div>
+          <div class="loc">Bengaluru · 2.7K followers</div>
+          <span class="fit good"><i></i>Good fit</span><div class="stats">
+          <div><div class="label">Engagement</div><div class="v">Above 46% of creators her size</div></div>
+          <div><div class="label">Last posted</div><div class="v">7 days ago</div></div>
+          <div><div class="label">Brand posts</div><div class="v"><span class="num">3</span> in last 18</div></div></div></div></div>
+        <div>
+          <p class="why sample" data-sample="sample: reel analysis">Research-backed pregnancy and newborn-care explainers with a loyal, talkative audience. Her one postpartum-care collab got 19× her usual likes; other product posts sit near her usual.</p>
+          <div class="ev">
+            <div class="it"><div class="thumb" style="--h:40"><svg><use href="#kf-prod"/></svg><span class="tc">0:37</span></div><div><div class="top"><span class="d">21 Jul</span><span class="vs up">19×</span><span class="tag">Collab · Stayleaf</span></div><div class="w">Postpartum recovery kit she used</div></div></div>
+            <div class="it"><div class="thumb" style="--h:250"><svg><use href="#kf-text"/></svg><span class="tc">0:29</span></div><div><div class="top"><span class="d">29 Sep</span><span class="vs up">1.5×</span></div><div class="w">Baby medicine kit: what to keep at home</div></div></div>
+            <div class="it"><div class="thumb" style="--h:300"><svg><use href="#kf-talk"/></svg><span class="tc">0:22</span></div><div><div class="top"><span class="d">Date —</span><span class="vs down">0.8×</span></div><div class="w">Nursing wear she relies on</div></div></div>
+          </div>
+        </div>
+        <div class="acts"><button class="btn sm">Save</button><button class="btn sm">Open</button><button class="btn sm quiet">Not a fit</button></div>
+      </div>
+
+      <!-- 5 -->
+      <div class="row">
+        <div class="rk"><span class="cbx"></span><span class="n">05</span></div>
+        <div class="who"><div class="avatar" style="width:36px;height:36px">SH</div><div>
+          <div class="nm">Shanthi</div><div class="h">@mummastessa</div>
+          <div class="loc">Chennai · 14K followers</div>
+          <span class="fit look"><i></i>Worth a look</span><div class="stats">
+          <div><div class="label">Engagement</div><div class="v">Above 41% of creators her size</div></div>
+          <div><div class="label">Last posted</div><div class="v">4 days ago</div></div>
+          <div><div class="label">Brand posts</div><div class="v"><span class="num">5</span> in last 18</div></div></div></div></div>
+        <div>
+          <p class="why">Chennai mom who posts regular FirstCry collaborations on kids' products and family outings. Fits on topic, but her sponsored posts get about half her usual engagement.</p>
+          <div class="ev">
+            <div class="it"><div class="thumb sq" style="--h:15;aspect-ratio:9/16"><svg><use href="#kf-two"/></svg></div><div><div class="top"><span class="d">25 Sep</span><span class="vs down">0.9×</span><span class="tag">Collab · FirstCry</span></div><div class="w">Festive kids' wear (photo post)</div></div></div>
+            <div class="it"><div class="thumb" style="--h:200"><svg><use href="#kf-prod"/></svg></div><div><div class="top"><span class="d">12 Sep</span><span class="vs down">0.6×</span><span class="tag sponsored">#ad · Tide</span></div><div class="w">Laundry gel, everyday use</div></div></div>
+            <div class="it"><div class="thumb" style="--h:175"><svg><use href="#kf-two"/></svg></div><div><div class="top"><span class="d">Date —</span><span class="vs up">11×</span></div><div class="w">Family beach-resort stay</div></div></div>
+          </div>
+          <div class="watch"><b>Watch out</b><span>Sponsored posts get 0.5× her usual engagement.</span></div>
+          <div class="basis">Based on captions and post stats. Reels not analysed yet.</div>
+        </div>
+        <div class="acts"><button class="btn sm">Save</button><button class="btn sm">Open</button><button class="btn sm quiet">Not a fit</button></div>
+      </div>
+
+      <div class="hidden-row"><span>▸</span><span><b style="color:var(--ink)">1 hidden</b> · Varsha Reddy (@kushiandmom): Not a fit, wrong niche. We'll use that reason next time.</span></div>
+
+      <div class="refine"><span>Tell me what to change: "only Chennai", "more who've done paid work", "drop anyone who hasn't posted this month"</span><button class="btn primary sm">Refine</button></div>
+
+      <div class="tray"><span>2 selected</span><span class="sp"></span><button class="btn sm">Compare</button><button class="btn sm primary">Add to shortlist</button><button class="btn sm" style="border-color:transparent">Clear</button></div>
+    </section>
+  </div>
+</div>
+
+<!-- ===================== SCREEN 2 ===================== -->
+<div class="screen-label"><b>02 · CREATOR PAGE</b><span>Desktop 1440 · /c/thecharupatil · numbers, dates and brand posts are real; summary, hooks, formats, fit categories and pitch angles are sample reel analysis</span></div>
+<div class="frame">
+  <div class="topbar">
+    <span class="wordmark">micro<em>India</em></span>
+    <nav class="nav"><a href="#">Brief</a><a href="#">Discover</a><a href="#">Shortlists<span class="count">2</span></a></nav>
+    <div class="right"><a href="#" style="color:var(--ink-2);text-decoration:none">Find a local business</a><div class="search"><svg class="ico"><use href="#srch"/></svg>Search creators<kbd>⌘K</kbd></div></div>
+  </div>
+  <div class="dhead">
+    <div class="avatar" style="width:52px;height:52px;font-size:15px">CP</div>
+    <div>
+      <div style="display:flex;align-items:center;gap:10px"><h1>Charu Patil</h1><span class="pill sample" data-sample="sample">Reels analysed · 6 Oct</span></div>
+      <div class="sub"><span><a href="#" style="color:var(--accent);text-decoration:none">@thecharupatil ↗</a></span><span>Bengaluru, also Pune</span><span><b class="num" style="color:var(--ink)">34K</b> followers</span><span>Last posted 6 days ago</span><span>Has done brand work</span></div>
+    </div>
+    <div class="actions"><button class="btn">Save</button><button class="btn">Compare</button><button class="btn">Ask AI about her</button><button class="btn primary">Open on Instagram</button></div>
+  </div>
+
+  <div class="dbody">
+    <div style="display:grid;gap:24px;align-content:start">
+      <section class="sec"><header><h2>In short</h2><span class="faint" style="font-size:12px">From 15 reels and 17 posts</span></header>
+        <div class="pad"><p class="inshort sample" data-sample="sample: reel analysis">A Bengaluru new mom who folds baby care, festive fashion and family moments into one warm, everyday feed. Brands appear inside real routines rather than as ad breaks, and her sponsored posts get 4× her usual engagement. Best for baby skincare, kids' fashion and Bengaluru family audiences. She has already done a paid post for Himalaya Baby.</p></div>
+      </section>
+
+      <section class="sec"><header><h2>Numbers</h2><span class="faint" style="font-size:12px">Median of 17 posts captured 5 Oct · compared with 293 creators at 10K–50K followers</span></header>
+        <table class="nums">
+          <tr><td>Engagement</td><td class="fig">1.74<small>%</small></td>
+            <td><div class="strip" aria-label="Above 83% of creators her size"><div class="track"></div><div class="med" style="left:50%"></div><div class="dot" style="left:83%"></div><span class="ax" style="left:0">0</span><span class="ax" style="left:calc(50% - 22px)">typical</span><span class="ax" style="right:0">100</span></div></td>
+            <td class="say">Above 83% of creators her size<span class="faint">Typical for her size: 0.43%. Likes + comments ÷ followers.</span></td></tr>
+          <tr><td>Likes · comments per post</td><td class="fig">543 <small>· 53</small></td><td></td><td class="say">About 3 comments per 100 likes<span class="faint">Median per post</span></td></tr>
+          <tr><td>Sponsored vs usual</td><td class="fig">4.0<small>×</small></td><td></td><td class="say">Sponsored posts get 4.0× her usual engagement<span class="faint">5 sponsored posts vs 12 others</span></td></tr>
+          <tr><td>Reels vs photos</td><td class="fig">2.0<small>×</small></td><td></td><td class="say">Reels get twice the engagement of her photo posts<span class="faint">11 reels, 4 photo posts</span></td></tr>
+          <tr><td>Posting rhythm</td><td class="fig">~7<small>/month</small></td><td></td><td class="say">About 7 posts a month<span class="faint">Last post 6 days ago</span></td></tr>
+          <tr><td>Typical reel plays</td><td class="fig missing">—</td><td></td><td class="say missing">Not collected yet<span class="faint">Instagram doesn't show plays on most pages we capture</span></td></tr>
+        </table>
+      </section>
+    </div>
+
+    <div style="display:grid;gap:24px;align-content:start">
+      <section class="sec"><header><h2>Brand work</h2><span class="faint" style="font-size:12px">From her captions</span></header>
+        <table class="brandtbl">
+          <thead><tr><th>Brand</th><th>Date</th><th>Marked as ad</th><th class="r">vs usual</th></tr></thead>
+          <tbody>
+            <tr><td>Himalaya Baby</td><td class="faint">—</td><td>Yes, #ad</td><td class="r"><span class="vs up">4.3×</span></td></tr>
+            <tr><td>Everpret</td><td class="faint">—</td><td class="faint">No</td><td class="r"><span class="vs up">4.0×</span></td></tr>
+            <tr><td>Sebamed</td><td class="num">29 Sep</td><td>Yes, #AD</td><td class="r"><span class="vs flat">1.3×</span></td></tr>
+            <tr><td>FirstCry</td><td class="faint">—</td><td>Yes, #collab</td><td class="r"><span class="vs flat">1.0×</span></td></tr>
+            <tr><td>Flipkart Kids</td><td class="num">8 Sep</td><td class="faint">No</td><td class="r"><span class="vs down">0.2×</span></td></tr>
+            <tr><td>Ocealgo</td><td class="num">2 Sep</td><td class="faint">No</td><td class="r"><span class="vs down">0.2×</span></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="sec sample" data-sample="sample: reel analysis"><header><h2>Good fit for</h2></header>
+        <ul class="fitlist">
+          <li><span>Baby skincare</span><span class="c">2 reels · 4.3×, 1.3×</span></li>
+          <li><span>Kids' fashion and festive wear</span><span class="c">3 posts · FirstCry, Flipkart Kids</span></li>
+          <li><span>Home routines for working parents</span><span class="c">2 reels · 1.6×, 2.2×</span></li>
+        </ul>
+      </section>
+
+      <section class="sec sample" data-sample="sample: reel analysis"><header><h2>Watch-outs</h2></header>
+        <ul class="watchouts">
+          <li><span class="m">!</span><span>Paid post for Himalaya Baby. Check exclusivity before pitching a baby skincare product.</span></li>
+          <li><span class="m">!</span><span>Product-first reels with no story (wipes, an unboxing) got 0.2× her usual likes.</span></li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="sec reels"><header><h2>Reels we looked at</h2><span class="faint" style="font-size:12px">6 of 15 · sorted by how they did against her usual · <a href="#" style="color:var(--accent);text-decoration:none">Show all 15</a></span></header>
+      <div class="reelgrid">
+        <article class="reel"><div class="thumb" style="--h:20"><svg><use href="#kf-prod"/></svg><span class="tc">0:41</span></div><div>
+          <div class="top"><span class="d">Date —</span><span class="num">2,346 likes</span><span class="vs up">4.3×</span><span class="tag sponsored">Sponsored · Himalaya</span></div>
+          <dl class="sample" data-sample="sample: reel analysis"><dt>Hook</dt><dd class="hook">"Concerned about your baby's extra dry skin?"</dd><dt>Format</dt><dd>Problem, then product in use. Her voiceover.</dd><dt>Why</dt><dd>Names one worry in the first line and shows the lotion on her son, not in her hand.</dd></dl>
+          <a class="open" href="#">Open on Instagram <svg class="ico" style="width:11px;height:11px"><use href="#ext"/></svg></a></div></article>
+        <article class="reel"><div class="thumb" style="--h:210"><svg><use href="#kf-prod"/></svg><span class="tc">0:33</span></div><div>
+          <div class="top"><span class="d">Date —</span><span class="num">2,189 likes</span><span class="vs up">4.0×</span><span class="tag">Everpret</span></div>
+          <dl class="sample" data-sample="sample: reel analysis"><dt>Hook</dt><dd class="hook">"The last thing anyone wants to worry about on a rainy day?"</dd><dt>Format</dt><dd>Rain test, quick cuts, on-screen text.</dd><dt>Why</dt><dd>A visible test (water on the bag) gives the product its moment of proof.</dd></dl>
+          <a class="open" href="#">Open on Instagram <svg class="ico" style="width:11px;height:11px"><use href="#ext"/></svg></a></div></article>
+        <article class="reel"><div class="thumb" style="--h:350"><svg><use href="#kf-two"/></svg><span class="tc">0:27</span></div><div>
+          <div class="top"><span class="d">27 Aug</span><span class="num">2,126 likes</span><span class="vs up">3.9×</span></div>
+          <dl class="sample" data-sample="sample: reel analysis"><dt>Hook</dt><dd class="hook">"Some sibling traditions never change…"</dd><dt>Format</dt><dd>Family moment for Raksha Bandhan, played for laughs.</dd><dt>Why</dt><dd>Festival timing and a real family joke. No product.</dd></dl>
+          <a class="open" href="#">Open on Instagram <svg class="ico" style="width:11px;height:11px"><use href="#ext"/></svg></a></div></article>
+        <article class="reel"><div class="thumb" style="--h:100"><svg><use href="#kf-talk"/></svg><span class="tc">0:46</span></div><div>
+          <div class="top"><span class="d">10 Aug</span><span class="num">1,177 likes</span><span class="vs up">2.2×</span></div>
+          <dl class="sample" data-sample="sample: reel analysis"><dt>Hook</dt><dd class="hook">"As a new mom, I've realised that time is the real luxury."</dd><dt>Format</dt><dd>Talking to camera, then her self-care hour.</dd><dt>Why</dt><dd>A line every new mom has thought; tips worth saving.</dd></dl>
+          <a class="open" href="#">Open on Instagram <svg class="ico" style="width:11px;height:11px"><use href="#ext"/></svg></a></div></article>
+        <article class="reel"><div class="thumb" style="--h:205"><svg><use href="#kf-two"/></svg><span class="tc">0:52</span></div><div>
+          <div class="top"><span class="d">6 Sep</span><span class="num">843 likes</span><span class="vs up">1.6×</span></div>
+          <dl class="sample" data-sample="sample: reel analysis"><dt>Hook</dt><dd class="hook">"How do you manage your baby without a nanny or house help?"</dd><dt>Format</dt><dd>Day in my life, captions over clips.</dd><dt>Why</dt><dd>A question hook: 29 comments from moms sharing their own setup.</dd></dl>
+          <a class="open" href="#">Open on Instagram <svg class="ico" style="width:11px;height:11px"><use href="#ext"/></svg></a></div></article>
+        <article class="reel low"><div class="thumb" style="--h:60"><svg><use href="#kf-prod"/></svg><span class="tc">0:18</span></div><div>
+          <div class="top"><span class="d">2 Sep</span><span class="num">93 likes</span><span class="vs down">0.2×</span><span class="tag">Ocealgo</span></div>
+          <dl class="sample" data-sample="sample: reel analysis"><dt>Hook</dt><dd class="hook">"Starting solids = messy hands, messy face…"</dd><dt>Format</dt><dd>Product demo from the first frame.</dd><dt>Why not</dt><dd class="why-l">No story around the wipes. 95 comments on 93 likes suggests a comment-to-win prompt.</dd></dl>
+          <a class="open" href="#">Open on Instagram <svg class="ico" style="width:11px;height:11px"><use href="#ext"/></svg></a></div></article>
+      </div>
+    </section>
+
+    <section class="sec pitch sample" data-sample="sample: reel analysis"><header><h2>Pitch angles for a baby sunscreen</h2><span class="faint" style="font-size:12px">Each one built on a reel that worked for her</span></header>
+      <ol>
+        <li><div class="t">The park-bag check: what goes in her son's outing bag before 11 am, with your sunscreen as the one thing she never skips.</div><div class="cite"><div class="thumb" style="--h:210"><svg><use href="#kf-prod"/></svg></div>Built on her rainy-day bag reel · <span class="vs up">4.0×</span></div></li>
+        <li><div class="t">A no-help morning routine where sunscreen goes on between breakfast and the park. Her routine reels hold attention.</div><div class="cite"><div class="thumb" style="--h:205"><svg><use href="#kf-two"/></svg></div>Built on "without a nanny" · <span class="vs up">1.6×</span></div></li>
+        <li><div class="t">From dry skin to sun care: an honest look at what goes on his face in October heat. Check her Himalaya Baby deal for exclusivity first.</div><div class="cite"><div class="thumb" style="--h:20"><svg><use href="#kf-prod"/></svg></div>Built on the dry-skin reel · <span class="vs up">4.3×</span></div></li>
+      </ol>
+    </section>
+
+    <div class="about"><span>Profile checked 5 Oct</span><span>17 posts captured</span><span>15 reels analysed 6 Oct (sample)</span><span>Creator page v1</span></div>
+  </div>
+</div>
+
+<!-- ===================== SCREEN 3 ===================== -->
+<div class="screen-label"><b>03 · LOCAL FINDER RESULT</b><span>Phone 390 · /local/search · shown in light and dark · businesses, areas, bios, post dates are real; "why matched" and portfolio one-liners are sample business-card analysis</span></div>
+<div class="frame">
+  <div class="phones">
+    <div class="phonewrap"><span class="cap">Light</span>
+      <div class="phone t-light">
+        <div class="status"><span>11:42</span><span>●●● 5G</span></div>
+        <div class="lbar"><span class="wordmark">microIndia <span>· Local</span></span><a href="#">Saved (1)</a></div>
+        <div class="lq">
+          <div class="box">Eggless theme cake for my son's 5th birthday, Kilpauk, under ₹2,000, this Sunday</div>
+          <div class="label lab">We understood · tap to change</div>
+          <div class="lchips">
+            <span class="lchip"><i>Task</i>Eggless theme cake</span>
+            <span class="lchip"><i>Area</i>Kilpauk, Chennai</span>
+            <span class="lchip"><i>Budget</i>under ₹2,000</span>
+            <span class="lchip"><i>When</i>Sun 11 Oct</span>
+            <span class="lchip"><i>Must</i>eggless</span>
+          </div>
+        </div>
+        <div class="lres"><b>3 home bakers near Kilpauk</b><span class="faint">Best match first</span></div>
+        <div class="near">Also in Chennai: <a href="#">Kodambakkam (1)</a> · <a href="#">Chromepet (1)</a></div>
+
+        <article class="bcard">
+          <div class="hd"><div class="avatar" style="width:36px;height:36px">CC</div><div><div class="nm">Cake Crush</div><div class="h">@cakecrush_chennai · 785 followers</div></div><div class="act">Posted<br>8 days ago</div></div>
+          <div class="whym sample" data-sample="sample: business card">7 cake posts since 3 Sep, mostly theme cakes for kids · Ayanavaram, next to Kilpauk</div>
+          <div class="port sample" data-sample="sample">
+            <figure><div class="thumb sq" style="--h:210"><svg><use href="#cake"/></svg></div><figcaption>Car theme · 27 Sep</figcaption></figure>
+            <figure><div class="thumb sq" style="--h:330"><svg><use href="#cake2"/></svg></div><figcaption>Stitch design, kid's birthday · 3 Sep</figcaption></figure>
+            <figure><div class="thumb sq" style="--h:40"><svg><use href="#cake"/></svg></div><figcaption>Krishna theme + cupcakes</figcaption></figure>
+          </div>
+          <dl class="facts">
+            <div><dt>Eggless</dt><dd><span class="flag okf">Only bakes eggless</span> <span class="faint">(bio)</span></dd></div>
+            <div><dt>Price</dt><dd class="ask">Prices not posted. Ask them.</dd></div>
+            <div><dt>Order</dt><dd>Instagram DM · 4–5 days ahead. <b>Order by Wed for Sunday.</b></dd></div>
+          </dl>
+          <div class="cta"><button class="btn primary">Message on Instagram</button><button class="btn">Save</button></div>
+        </article>
+
+        <article class="bcard">
+          <div class="hd"><div class="avatar" style="width:36px;height:36px">SB</div><div><div class="nm">Sis Bakes</div><div class="h">@chennai_home_bakers_sis_bakes · 607</div></div><div class="act">Posted<br>today</div></div>
+          <div class="whym sample" data-sample="sample: business card">Custom theme and photo cakes, from ½ kg to 3 tiers · Egmore, next to Kilpauk</div>
+          <div class="port">
+            <figure><div class="thumb sq" style="--h:300"><svg><use href="#cake"/></svg></div><figcaption>Butterfly theme, 5 kg, 3 tier</figcaption></figure>
+            <figure><div class="thumb sq" style="--h:345"><svg><use href="#cake2"/></svg></div><figcaption>Pink bow cake, ½ kg</figcaption></figure>
+            <figure><div class="thumb sq" style="--h:230"><svg><use href="#cake"/></svg></div><figcaption>Photo cake, edible print</figcaption></figure>
+          </div>
+          <dl class="facts">
+            <div><dt>Eggless</dt><dd><span class="flag askf">Ask if eggless</span> <span class="faint">· not stated</span></dd></div>
+            <div><dt>Price</dt><dd class="ask">Prices not posted. Ask them.</dd></div>
+            <div><dt>Order</dt><dd>WhatsApp (link in bio) or Instagram DM</dd></div>
+          </dl>
+          <div class="cta"><button class="btn primary">Message on Instagram</button><button class="btn">WhatsApp</button><button class="btn">Save</button></div>
+        </article>
+
+        <article class="bcard">
+          <div class="hd"><div class="avatar" style="width:36px;height:36px">CB</div><div><div class="nm">Cakebrew Studio</div><div class="h">@cakebrewstudio · 1.3K followers</div></div><div class="act">Posted<br>4 days ago</div></div>
+          <div class="whym sample" data-sample="sample: business card">Character cakes for kids (Peppa Pig, Frozen, Pooh) · Chennai</div>
+          <div class="port">
+            <figure><div class="thumb sq" style="--h:340"><svg><use href="#cake2"/></svg></div><figcaption>Peppa Pig, no fondant · 28 Sep</figcaption></figure>
+            <figure><div class="thumb sq" style="--h:20"><svg><use href="#cake"/></svg></div><figcaption>Carousel, 4.5 kg · 1 Oct</figcaption></figure>
+            <figure><div class="thumb sq" style="--h:200"><svg><use href="#cake"/></svg></div><figcaption>Frozen theme</figcaption></figure>
+          </div>
+          <dl class="facts">
+            <div><dt>Eggless</dt><dd><span class="flag askf">Ask if eggless</span> <span class="faint">· not stated</span></dd></div>
+            <div><dt>Where</dt><dd class="ask">Area not stated. Ask before ordering.</dd></div>
+            <div><dt>Price</dt><dd class="ask">Prices not posted. Ask them.</dd></div>
+          </dl>
+          <div class="cta"><button class="btn primary">Message on Instagram</button><button class="btn">Save</button></div>
+        </article>
+        <div class="lfoot">Checked 5 Oct. Details come from their public Instagram. Confirm price and date with them.</div>
+      </div>
+    </div>
+
+    <div class="phonewrap"><span class="cap">Dark</span>
+      <div class="phone t-dark">
+        <div class="status"><span>11:42</span><span>●●● 5G</span></div>
+        <div class="lbar"><span class="wordmark">microIndia <span>· Local</span></span><a href="#">Saved (1)</a></div>
+        <div class="lq">
+          <div class="box">Eggless theme cake for my son's 5th birthday, Kilpauk, under ₹2,000, this Sunday</div>
+          <div class="label lab">We understood · tap to change</div>
+          <div class="lchips">
+            <span class="lchip"><i>Task</i>Eggless theme cake</span>
+            <span class="lchip"><i>Area</i>Kilpauk, Chennai</span>
+            <span class="lchip"><i>Budget</i>under ₹2,000</span>
+            <span class="lchip"><i>When</i>Sun 11 Oct</span>
+            <span class="lchip"><i>Must</i>eggless</span>
+          </div>
+        </div>
+        <div class="lres"><b>3 home bakers near Kilpauk</b><span class="faint">Best match first</span></div>
+        <div class="near">Also in Chennai: <a href="#">Kodambakkam (1)</a> · <a href="#">Chromepet (1)</a></div>
+        <article class="bcard">
+          <div class="hd"><div class="avatar" style="width:36px;height:36px">CC</div><div><div class="nm">Cake Crush</div><div class="h">@cakecrush_chennai · 785 followers</div></div><div class="act">Posted<br>8 days ago</div></div>
+          <div class="whym">7 cake posts since 3 Sep, mostly theme cakes for kids · Ayanavaram, next to Kilpauk</div>
+          <div class="port">
+            <figure><div class="thumb sq" style="--h:210"><svg><use href="#cake"/></svg></div><figcaption>Car theme · 27 Sep</figcaption></figure>
+            <figure><div class="thumb sq" style="--h:330"><svg><use href="#cake2"/></svg></div><figcaption>Stitch design, kid's birthday · 3 Sep</figcaption></figure>
+            <figure><div class="thumb sq" style="--h:40"><svg><use href="#cake"/></svg></div><figcaption>Krishna theme + cupcakes</figcaption></figure>
+          </div>
+          <dl class="facts">
+            <div><dt>Eggless</dt><dd><span class="flag okf">Only bakes eggless</span> <span class="faint">(bio)</span></dd></div>
+            <div><dt>Price</dt><dd class="ask">Prices not posted. Ask them.</dd></div>
+            <div><dt>Order</dt><dd>Instagram DM · 4–5 days ahead. <b>Order by Wed for Sunday.</b></dd></div>
+          </dl>
+          <div class="cta"><button class="btn primary">Message on Instagram</button><button class="btn">Save</button></div>
+        </article>
+        <article class="bcard">
+          <div class="hd"><div class="avatar" style="width:36px;height:36px">SB</div><div><div class="nm">Sis Bakes</div><div class="h">@chennai_home_bakers_sis_bakes · 607</div></div><div class="act">Posted<br>today</div></div>
+          <div class="whym">Custom theme and photo cakes, from ½ kg to 3 tiers · Egmore, next to Kilpauk</div>
+          <div class="port">
+            <figure><div class="thumb sq" style="--h:300"><svg><use href="#cake"/></svg></div><figcaption>Butterfly theme, 5 kg, 3 tier</figcaption></figure>
+            <figure><div class="thumb sq" style="--h:345"><svg><use href="#cake2"/></svg></div><figcaption>Pink bow cake, ½ kg</figcaption></figure>
+            <figure><div class="thumb sq" style="--h:230"><svg><use href="#cake"/></svg></div><figcaption>Photo cake, edible print</figcaption></figure>
+          </div>
+          <dl class="facts">
+            <div><dt>Eggless</dt><dd><span class="flag askf">Ask if eggless</span> <span class="faint">· not stated</span></dd></div>
+            <div><dt>Price</dt><dd class="ask">Prices not posted. Ask them.</dd></div>
+            <div><dt>Order</dt><dd>WhatsApp (link in bio) or Instagram DM</dd></div>
+          </dl>
+          <div class="cta"><button class="btn primary">Message on Instagram</button><button class="btn">WhatsApp</button><button class="btn">Save</button></div>
+        </article>
+        <div class="lfoot">Checked 5 Oct. Details come from their public Instagram. Confirm price and date with them.</div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <h3>Notes on this screen</h3>
+      <p>Phone first. The query box stays on top; the chips show exactly what we parsed, labelled, so a wrong area is obvious and one tap to fix.</p>
+      <p>No stars, no "verified", no "replies fast". Unknowns are written as instructions ("Ask if eggless", "Prices not posted. Ask them.") in warn ink, never hidden.</p>
+      <p>The lead-time line does the date maths for the user: "Order by Wed for Sunday".</p>
+      <p>WhatsApp appears only when the business shows it publicly. Instagram DM is always available, so it's always the primary button.</p>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
