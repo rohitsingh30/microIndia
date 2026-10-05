@@ -51,7 +51,30 @@ class AuthBlocked:
     reason: str
 
 
-Result = Union[Done, Retry, Skip, Fail, AuthBlocked]
+@dataclass
+class Offline:
+    """This machine lost its network. Not the task's fault: the attempt is given back and every
+    runner pauses until the network answers again."""
+
+    reason: str
+
+
+Result = Union[Done, Retry, Skip, Fail, AuthBlocked, Offline]
+
+# Chromium net errors that mean *we* are offline, not that Instagram refused us.
+OFFLINE_MARKERS = (
+    "ERR_INTERNET_DISCONNECTED",
+    "ERR_NAME_NOT_RESOLVED",
+    "ERR_NETWORK_CHANGED",
+    "ERR_ADDRESS_UNREACHABLE",
+    "ERR_NETWORK_IO_SUSPENDED",
+    "ERR_NETWORK_ACCESS_DENIED",
+    "ERR_PROXY_CONNECTION_FAILED",
+)
+
+
+def is_offline_error(text: Optional[str]) -> bool:
+    return bool(text) and any(marker in text for marker in OFFLINE_MARKERS)
 
 
 class AuthRequired(RuntimeError):

@@ -31,9 +31,20 @@ if [ -n "$SOURCE" ]; then
     printf 'Seed list not found, ignoring: %s\n' "$SOURCE" >&2
   fi
 fi
-printf '%s\n' "Starting collection supervisor (chrome, sourcer, scraper, dashboard)." >&2
-
 export PYTHONPATH="$ROOT_DIR/src${PYTHONPATH:+:$PYTHONPATH}"
+
+# Insight plane (analyzer, backup) always runs in the background under its own supervisor,
+# so it can be restarted without touching collection. A second start is refused by its lock.
+[ -f run/insight-workers.json ] || cp run/insight-workers.example.json run/insight-workers.json
+nohup .venv/bin/python -m microindia_scraper.local_supervisor \
+  --config run/insight-workers.json \
+  --state run/insight-supervisor-state.json \
+  --lock run/insight-supervisor.lock \
+  >>run/insight-supervisor.log 2>&1 </dev/null &
+printf 'Started insight supervisor (pid %s).\n' "$!" >&2
+
+[ -f run/local-workers.json ] || cp run/local-workers.example.json run/local-workers.json
+printf '%s\n' "Starting collection supervisor (chrome, sourcer, scraper, api, watchdog)." >&2
 if [ "$BACKGROUND" -eq 1 ]; then
   LOG_FILE=${MICROINDIA_SUPERVISOR_LOG:-run/public-collection-supervisor.log}
   nohup .venv/bin/python -m microindia_scraper.local_supervisor \

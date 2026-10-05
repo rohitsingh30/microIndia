@@ -11,6 +11,7 @@ apps/scraper/run/*-state.json
 apps/scraper/run/health.json
 apps/scraper/run/browser-health.json
 apps/scraper/run/local-workers.json
+apps/scraper/run/insight-workers.json
 apps/scraper/run/tabs/
 
 # Python

@@ -5,6 +5,7 @@
     python -m microindia_scraper.run work --kinds '*' --tabs 8
     python -m microindia_scraper.run add source.list data/seeds.txt
     python -m microindia_scraper.run status
+    python -m microindia_scraper.run requeue --offline
 """
 
 from __future__ import annotations
@@ -72,6 +73,7 @@ def work(args: argparse.Namespace) -> None:
         schedulers=_schedulers_for(kinds),
         max_tasks=args.max_tasks,
         gate=_backpressure(args.backlog_limit),
+        hard_exit_seconds=args.hard_exit_seconds,
     )
     try:
         asyncio.run(runner.run())
@@ -108,6 +110,20 @@ def unblock(args: argparse.Namespace) -> None:
     tasks = TaskStore(args.database)
     print(json.dumps({"requeued": tasks.clear_auth_blocked()}))
     tasks.close()
+
+
+def requeue(args: argparse.Namespace) -> None:
+    """Give failed tasks a fresh start, e.g. everything that failed while the network was down."""
+    from .runtime.results import OFFLINE_MARKERS
+
+    tasks = TaskStore(args.database)
+    kinds = handlers_for(args.kinds.split(",")) if args.kinds else None
+    if args.offline:
+        total = sum(tasks.requeue_failed(kinds=kinds, error_like=f"%{marker}%") for marker in OFFLINE_MARKERS)
+    else:
+        total = tasks.requeue_failed(kinds=kinds, error_like=args.error_like)
+    tasks.close()
+    print(json.dumps({"requeued": total}))
 
 
 def migrate(args: argparse.Namespace) -> None:
@@ -173,6 +189,8 @@ def main(argv: List[str] = None) -> None:
     p_work.add_argument("--max-attempts", type=int, default=3)
     p_work.add_argument("--backlog-limit", type=int, default=3000,
                         help="pause search/similar sourcing while more scrape tasks than this are pending (0 = never)")
+    p_work.add_argument("--hard-exit-seconds", type=float, default=60.0,
+                        help="exit anyway this long after a stop if a slot is stuck (0 = wait forever)")
     p_work.set_defaults(func=work)
 
     p_add = sub.add_parser("add", help="queue one task, e.g. add source.list seeds.txt")
@@ -185,6 +203,11 @@ def main(argv: List[str] = None) -> None:
     sub.add_parser("status", help="task counts by kind/state, runners, auth pause").set_defaults(func=status)
     sub.add_parser("unblock", help="clear the auth pause after signing in again").set_defaults(func=unblock)
     sub.add_parser("migrate", help="import existing captures and queued jobs").set_defaults(func=migrate)
+    p_requeue = sub.add_parser("requeue", help="give failed tasks a fresh start")
+    p_requeue.add_argument("--kinds", default="", help="comma-separated globs; default all kinds")
+    p_requeue.add_argument("--offline", action="store_true", help="only tasks that failed because we were offline")
+    p_requeue.add_argument("--error-like", default=None, help="SQL LIKE pattern over last_error")
+    p_requeue.set_defaults(func=requeue)
 
     args = parser.parse_args(argv)
     args.func(args)

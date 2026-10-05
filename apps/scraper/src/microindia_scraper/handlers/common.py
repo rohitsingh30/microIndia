@@ -4,11 +4,42 @@ from __future__ import annotations
 
 import re
 from typing import Any, Dict, Iterable, List, Optional
+from urllib.parse import urlparse
 
-from ..cohort import canonical_profile_url
 from ..runtime.results import FollowUp
 
 MENTION_RE = re.compile(r"@([A-Za-z0-9._]{1,30})")
+# Instagram paths that look like usernames but are app routes.
+RESERVED_PROFILE_ROUTES = {
+    "about", "accounts", "developer", "direct", "directory", "emails", "explore", "feed",
+    "for_you", "hashtag", "home", "legal", "live", "locations", "oauth", "p", "press",
+    "privacy", "push", "reel", "reels", "stories", "tags", "terms", "tv", "web",
+}
+
+
+def _profile_url(username: str) -> str:
+    handle = re.sub(r"[^A-Za-z0-9._]", "", str(username)).strip(".").lower()
+    if not handle or handle in RESERVED_PROFILE_ROUTES:
+        return ""
+    return f"https://www.instagram.com/{handle}/"
+
+
+def canonical_profile_url(value: Any) -> str:
+    """Return one canonical public profile URL for a username or profile URL, or an empty string."""
+    if not isinstance(value, str):
+        return ""
+    candidate = value.strip()
+    if not candidate:
+        return ""
+    if "://" not in candidate:
+        return _profile_url(candidate)
+    parsed = urlparse(candidate)
+    if parsed.scheme.lower() != "https" or parsed.netloc.lower() not in {"instagram.com", "www.instagram.com"}:
+        return ""
+    parts = [part for part in parsed.path.split("/") if part]
+    if len(parts) != 1 or parts[0].lower() in RESERVED_PROFILE_ROUTES:
+        return ""
+    return _profile_url(parts[0])
 
 
 def username_of(value: Any) -> Optional[str]:

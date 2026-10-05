@@ -1,0 +1,13 @@
+{
+  "workers": [
+    {
+      "name": "backup",
+      "command": ["env", "PYTHONPATH=src", ".venv/bin/python", "-m", "microindia_scraper.backup",
+                  "--database", "data/microindia.sqlite3", "--dir", "data/backups", "--keep", "7"],
+      "log_file": "run/backup.log",
+      "restart": true,
+      "max_restarts": null,
+      "cooldown_seconds": 60
+    }
+  ]
+}

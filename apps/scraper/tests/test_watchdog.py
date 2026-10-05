@@ -1,6 +1,6 @@
 import unittest
 
-from microindia_scraper.watchdog import Observation, Policy, WatchdogState, decide
+from microindia_scraper.watchdog import Observation, Policy, RunnerProgress, WatchdogState, decide
 
 
 def obs(now, **overrides):
@@ -38,14 +38,38 @@ class WatchdogDecisionTest(unittest.TestCase):
         actions = decide(obs(2000, heartbeats={"sourcer": 2000, "scraper": 1500}), self.state, self.policy)
         self.assertEqual(actions, [{"worker": "scraper", "reason": "no heartbeat for 500s"}])
 
-    def test_stuck_queue_restarts_runners_but_not_when_auth_blocked(self):
-        stuck = obs(5000, last_finished_at=3000)
-        self.assertEqual({a["worker"] for a in decide(stuck, self.state, self.policy)}, {"sourcer", "scraper"})
+    def test_dead_scraper_is_caught_while_sourcer_keeps_finishing(self):
+        # 5 Oct: the sourcer kept finishing tasks, which hid a scraper stalled for 83 minutes.
+        progress = {"sourcer": RunnerProgress(due=40, last_finished_at=4990, expired_leases=0),
+                    "scraper": RunnerProgress(due=27000, last_finished_at=3000, expired_leases=0)}
+        actions = decide(obs(5000, last_finished_at=4990, progress=progress), self.state, self.policy)
+        self.assertEqual([a["worker"] for a in actions], ["scraper"])
+
+    def test_leases_held_past_expiry_mean_stuck_slots(self):
+        progress = {"scraper": RunnerProgress(due=100, last_finished_at=4990, expired_leases=8)}
+        actions = decide(obs(5000, progress=progress), self.state, self.policy)
+        self.assertEqual(actions, [{"worker": "scraper", "reason": "8 task(s) held past their lease: slots stuck"}])
+
+    def test_held_back_sourcer_is_not_stuck(self):
+        # Backpressure: the sourcer reports nothing it may take, so silence is expected.
+        progress = {"sourcer": RunnerProgress(due=0, last_finished_at=1000, expired_leases=0)}
+        self.assertEqual(decide(obs(5000, progress=progress), self.state, self.policy), [])
+
+    def test_no_restarts_while_signed_out_or_offline(self):
+        progress = {"scraper": RunnerProgress(due=100, last_finished_at=1000, expired_leases=3)}
+        self.assertEqual(decide(obs(5000, progress=progress, auth_blocked="login"), self.state, self.policy), [])
         fresh = WatchdogState(started_at=0.0)
-        self.assertEqual(decide(obs(5000, last_finished_at=3000, auth_blocked="login"), fresh, self.policy), [])
+        self.assertEqual(decide(obs(5000, progress=progress, network_down="ERR_INTERNET_DISCONNECTED"),
+                                fresh, self.policy), [])
+
+    def test_restarted_runner_gets_grace_before_next_restart(self):
+        progress = {"scraper": RunnerProgress(due=100, last_finished_at=1000, expired_leases=0)}
+        self.assertEqual(len(decide(obs(5000, progress=progress), self.state, self.policy)), 1)
+        self.assertEqual(decide(obs(5060, progress=progress), self.state, self.policy), [])
 
     def test_empty_queue_is_not_stuck(self):
-        self.assertEqual(decide(obs(5000, last_finished_at=3000, queued=0), self.state, self.policy), [])
+        progress = {"scraper": RunnerProgress(due=0, last_finished_at=1000, expired_leases=0)}
+        self.assertEqual(decide(obs(5000, progress=progress), self.state, self.policy), [])
 
 
 if __name__ == "__main__":

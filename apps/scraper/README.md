@@ -37,6 +37,9 @@ Workers (see `run/local-workers.example.json`):
 | `api` | `api --port 8787` | JSON API + serves `apps/dashboard/dist` |
 | `watchdog` | `watchdog` | hung tabs, stalled workers, `run/health.json` |
 | `keep-awake` | `caffeinate -ims` | the Mac never sleeps |
+| `backup` *(insight plane)* | `backup` | daily verified online backup to `data/backups/`, keeping 7 |
+
+The collection workers run under one supervisor (`run/local-workers.json`) and the insight workers under a second (`run/insight-workers.json`), so either side can be redeployed alone. After a network outage, `run requeue --offline` gives any old offline failures a fresh start; new ones simply pause.
 
 ## Task runtime
 

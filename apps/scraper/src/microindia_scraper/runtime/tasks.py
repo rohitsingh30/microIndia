@@ -6,6 +6,8 @@ second row. ``state`` is the only state machine:
     queued -> leased -> done | skipped | failed
                      -> queued (retry, run_at in the future)
                      -> auth_blocked -> queued (when the session is healthy again)
+                     -> queued (offline: attempt given back, every runner pauses until the
+                                network answers again)
 
 Expired leases are re-leased; a task that keeps killing its runner stops at
 ``max_attempts``.
@@ -19,10 +21,12 @@ import sqlite3
 import time
 from typing import Any, Dict, Iterable, List, Optional
 
-from .results import AuthBlocked, Done, Fail, FollowUp, Result, Retry, Skip
+from .results import OFFLINE_MARKERS, AuthBlocked, Done, Fail, FollowUp, Offline, Result, Retry, Skip
 
 TERMINAL_STATES = ("done", "skipped", "failed")
 AUTH_FLAG = "auth_blocked"
+NETWORK_FLAG = "network_down"
+OFFLINE_RETRY_SECONDS = 60.0
 
 
 def backoff_seconds(attempts: int) -> float:
@@ -100,6 +104,9 @@ class TaskStore:
             );
             """
         )
+        runner_columns = {row[1] for row in self.connection.execute("PRAGMA table_info(runners)")}
+        if "due" not in runner_columns:  # tasks this runner may take right now (watchdog stall check)
+            self.connection.execute("ALTER TABLE runners ADD COLUMN due INTEGER")
         columns = {row[1] for row in self.connection.execute("PRAGMA table_info(tasks)")}
         if "duration" not in columns:  # seconds a task took (speed stats); added after first release
             self.connection.execute("ALTER TABLE tasks ADD COLUMN duration REAL")
@@ -189,8 +196,9 @@ class TaskStore:
             f"""UPDATE tasks SET state='failed', leased_by=NULL, lease_until=NULL,
                   last_error='lease expired at attempt cap; last error: ' || COALESCE(last_error, 'none'),
                   finished_at=?, updated_at=?
-                WHERE kind IN ({marks}) AND state='leased' AND lease_until < ? AND attempts >= ?""",
-            (current, current, *kinds, current, self.max_attempts),
+                WHERE kind IN ({marks}) AND state='leased' AND lease_until < ? AND attempts >= ?
+                  AND leased_by IS NOT ?""",
+            (current, current, *kinds, current, self.max_attempts, runner_id),
         )
         floors = priority_floor or {}
         floor_sql = "".join(" AND NOT (kind = ? AND priority < ?)" for _ in floors)
@@ -201,13 +209,14 @@ class TaskStore:
                 WHERE task_id = (
                     SELECT task_id FROM tasks
                     WHERE kind IN ({marks})
-                      AND ((state='queued' AND run_at <= ?) OR (state='leased' AND lease_until < ?))
+                      AND ((state='queued' AND run_at <= ?)
+                           OR (state='leased' AND lease_until < ? AND leased_by IS NOT ?))
                       {floor_sql}
                     ORDER BY priority DESC, run_at ASC, task_id ASC
                     LIMIT 1
                 )
                 RETURNING *""",
-            (runner_id, current + lease_seconds, current, *kinds, current, current, *floor_args),
+            (runner_id, current + lease_seconds, current, *kinds, current, current, runner_id, *floor_args),
         ).fetchone()
         self.connection.commit()
         if row is None:
@@ -221,6 +230,18 @@ class TaskStore:
         current = time.time()
         cursor = self.connection.execute(
             """UPDATE tasks SET state='queued', run_at=?, leased_by=NULL, lease_until=NULL, updated_at=?
+               WHERE state='leased' AND leased_by=?""",
+            (current, current, runner_id),
+        )
+        self.connection.commit()
+        return cursor.rowcount
+
+    def refund_leases(self, runner_id: str) -> int:
+        """Requeue this runner's in-flight tasks and give their attempt back (normal stop, not their fault)."""
+        current = time.time()
+        cursor = self.connection.execute(
+            """UPDATE tasks SET state='queued', attempts=MAX(0, attempts-1), run_at=?, leased_by=NULL,
+                 lease_until=NULL, updated_at=?
                WHERE state='leased' AND leased_by=?""",
             (current, current, runner_id),
         )
@@ -245,6 +266,7 @@ class TaskStore:
         attempts = int(task.get("attempts") or 0)
         follow_ups: List[FollowUp] = []
         auth_reason: Optional[str] = None
+        offline_reason: Optional[str] = None
         if isinstance(result, Done):
             state, error, data = "done", None, result.data
             follow_ups = result.follow_ups
@@ -258,6 +280,12 @@ class TaskStore:
             state, error, data, run_at = "auth_blocked", result.reason, None, None
             attempts = max(0, attempts - 1)
             auth_reason = result.reason
+        elif isinstance(result, Offline):
+            # Our network is down: give the attempt back and try again once it is up.
+            state, error, data = "queued", result.reason, None
+            attempts = max(0, attempts - 1)
+            run_at = current + OFFLINE_RETRY_SECONDS
+            offline_reason = result.reason
         elif isinstance(result, Retry):
             data = None
             error = result.reason
@@ -286,6 +314,8 @@ class TaskStore:
             self.enqueue_follow_ups(follow_ups, parent_task_id=task["task_id"])
         if auth_reason:
             self.set_auth_blocked(auth_reason)
+        if offline_reason:
+            self.set_network_down(offline_reason)
         return state
 
     # -- session-wide pause -------------------------------------------------
@@ -311,6 +341,61 @@ class TaskStore:
         cursor = self.connection.execute(
             "UPDATE tasks SET state='queued', run_at=?, updated_at=? WHERE state='auth_blocked'",
             (current, current),
+        )
+        self.connection.commit()
+        return cursor.rowcount
+
+    def _set_flag(self, name: str, value: str) -> None:
+        self.connection.execute(
+            """INSERT INTO runtime_flags(name, value, updated_at) VALUES (?, ?, ?)
+               ON CONFLICT(name) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at""",
+            (name, value, time.time()),
+        )
+        self.connection.commit()
+
+    def set_network_down(self, reason: str) -> None:
+        if not self.network_down():
+            self._set_flag(NETWORK_FLAG, reason)
+
+    def network_down(self) -> Optional[str]:
+        row = self.connection.execute("SELECT value FROM runtime_flags WHERE name=?", (NETWORK_FLAG,)).fetchone()
+        return str(row["value"]) if row else None
+
+    def clear_network_down(self) -> int:
+        """Lift the offline pause; tasks parked by it become due now. Returns tasks made due."""
+        current = time.time()
+        self.connection.execute("DELETE FROM runtime_flags WHERE name=?", (NETWORK_FLAG,))
+        offline = " OR ".join("last_error LIKE ?" for _ in OFFLINE_MARKERS)
+        cursor = self.connection.execute(
+            f"UPDATE tasks SET run_at=?, updated_at=? WHERE state='queued' AND run_at > ? AND ({offline})",
+            (current, current, current, *[f"%{marker}%" for marker in OFFLINE_MARKERS]),
+        )
+        self.connection.commit()
+        return cursor.rowcount
+
+    def expired_leases(self, runner_id: str, *, grace_seconds: float = 0.0, now: Optional[float] = None) -> int:
+        """Tasks this runner still holds past their lease: its slots are stuck, not working."""
+        current = time.time() if now is None else now
+        row = self.connection.execute(
+            "SELECT COUNT(*) AS n FROM tasks WHERE state='leased' AND leased_by=? AND lease_until < ?",
+            (runner_id, current - grace_seconds),
+        ).fetchone()
+        return int(row["n"])
+
+    def requeue_failed(self, *, kinds: Optional[List[str]] = None, error_like: Optional[str] = None) -> int:
+        """Give failed tasks a fresh start (attempts reset), optionally only matching kinds/errors."""
+        current = time.time()
+        where, args = ["state='failed'"], []
+        if kinds:
+            where.append(f"kind IN ({','.join('?' for _ in kinds)})")
+            args += list(kinds)
+        if error_like:
+            where.append("last_error LIKE ?")
+            args.append(error_like)
+        cursor = self.connection.execute(
+            f"""UPDATE tasks SET state='queued', attempts=0, run_at=?, finished_at=NULL, updated_at=?
+                WHERE {' AND '.join(where)}""",
+            (current, current, *args),
         )
         self.connection.commit()
         return cursor.rowcount
@@ -357,16 +442,34 @@ class TaskStore:
             result.setdefault(row["kind"], {})[row["state"]] = int(row["n"])
         return result
 
+    def due_count(self, kinds: List[str], *, priority_floor: Optional[Dict[str, int]] = None,
+                  now: Optional[float] = None, runner_id: Optional[str] = None) -> int:
+        """Tasks of these kinds a runner may lease right now (same rule as ``lease``)."""
+        if not kinds:
+            return 0
+        current = time.time() if now is None else now
+        marks = ",".join("?" for _ in kinds)
+        floors = priority_floor or {}
+        floor_sql = "".join(" AND NOT (kind = ? AND priority < ?)" for _ in floors)
+        floor_args = [value for kind, floor in floors.items() for value in (kind, floor)]
+        row = self.connection.execute(
+            f"""SELECT COUNT(*) AS n FROM tasks WHERE kind IN ({marks})
+                  AND ((state='queued' AND run_at <= ?)
+                       OR (state='leased' AND lease_until < ? AND leased_by IS NOT ?)) {floor_sql}""",
+            (*kinds, current, current, runner_id, *floor_args),
+        ).fetchone()
+        return int(row["n"])
+
     def heartbeat(self, runner_id: str, *, kinds: List[str], tabs: int, status: str,
-                  processed: int = 0, last_error: Optional[str] = None) -> None:
+                  processed: int = 0, last_error: Optional[str] = None, due: Optional[int] = None) -> None:
         current = time.time()
         self.connection.execute(
-            """INSERT INTO runners(runner_id, kinds, tabs, status, processed, last_error, started_at, last_heartbeat)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """INSERT INTO runners(runner_id, kinds, tabs, status, processed, last_error, started_at, last_heartbeat, due)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT(runner_id) DO UPDATE SET kinds=excluded.kinds, tabs=excluded.tabs,
                  status=excluded.status, processed=excluded.processed,
                  last_error=COALESCE(excluded.last_error, runners.last_error),
-                 last_heartbeat=excluded.last_heartbeat""",
-            (runner_id, ",".join(kinds), tabs, status, processed, last_error, current, current),
+                 last_heartbeat=excluded.last_heartbeat, due=excluded.due""",
+            (runner_id, ",".join(kinds), tabs, status, processed, last_error, current, current, due),
         )
         self.connection.commit()

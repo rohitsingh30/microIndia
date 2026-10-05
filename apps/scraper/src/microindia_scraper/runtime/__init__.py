@@ -7,7 +7,7 @@ scraping and scraping feeds sourcing.
 """
 
 from .registry import TaskContext, handler, handlers_for, registered_kinds
-from .results import AuthBlocked, Done, Fail, FollowUp, Retry, Skip
+from .results import AuthBlocked, Done, Fail, FollowUp, Offline, Retry, Skip, is_offline_error
 from .tasks import TaskStore
 
 __all__ = [
@@ -15,11 +15,13 @@ __all__ = [
     "Done",
     "Fail",
     "FollowUp",
+    "Offline",
     "Retry",
     "Skip",
     "TaskContext",
     "TaskStore",
     "handler",
     "handlers_for",
+    "is_offline_error",
     "registered_kinds",
 ]

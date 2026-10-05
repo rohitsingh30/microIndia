@@ -10,7 +10,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 from .brand import DISCLOSURE_RE
 
-BANDS = ((0, 10_000, "1K–10K"), (10_000, 50_000, "10K–50K"), (50_000, 100_000, "50K–100K"), (100_000, 10**9, "100K+"))
+from .constants import COHORT_MAX_FOLLOWERS, COHORT_MIN_FOLLOWERS, DISPLAY_BANDS as BANDS
 
 
 def band_of(followers: Optional[float]) -> str:
@@ -191,7 +191,7 @@ def fit(creator: Dict[str, Any], criteria: Dict[str, Any]) -> Dict[str, Any]:
         return {"score": 0, "reasons": [], "misses": [creator.get("excluded_reason") or "out of scope"]}
     score = 0.0
     followers = creator.get("followers")
-    low, high = criteria.get("min_followers", 1_000), criteria.get("max_followers", 100_000)
+    low, high = criteria.get("min_followers", COHORT_MIN_FOLLOWERS), criteria.get("max_followers", COHORT_MAX_FOLLOWERS)
     if followers is not None and low <= followers <= high:
         score += 30
         reasons.append(f"{band_of(followers)} followers")

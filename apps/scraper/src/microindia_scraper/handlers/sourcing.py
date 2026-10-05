@@ -72,7 +72,7 @@ async def source_similar(ctx: TaskContext, task: Dict[str, Any]):
     username = username_of(task["payload"].get("username") or task["key"])
     if not username:
         return Fail(f"not an Instagram username: {task['key']!r}")
-    user_id = await _user_id(ctx.page, username)
+    user_id = await _user_id(ctx.page, username, ctx.tasks)
     if isinstance(user_id, Retry):
         return user_id
     if not user_id:
@@ -95,8 +95,28 @@ async def source_similar(ctx: TaskContext, task: Dict[str, Any]):
     )
 
 
-async def _user_id(page: Any, username: str):
-    """Numeric user id from Instagram search (the profile-info endpoint is rate-limited for this account)."""
+def _stored_user_id(tasks: TaskStore, username: str) -> Optional[str]:
+    """The numeric id our own capture of this profile saved (scrapes since 6 Oct record it)."""
+    row = tasks.connection.execute(
+        """SELECT json_extract(s.payload, '$.platform_user_id') FROM profile_snapshots s
+           JOIN profile_captures c ON c.capture_id = s.capture_id
+           WHERE c.profile_url = ? AND json_extract(s.payload, '$.platform_user_id') IS NOT NULL
+           ORDER BY c.captured_at DESC LIMIT 1""",
+        (f"https://www.instagram.com/{username}/",),
+    ).fetchone()
+    return str(row[0]) if row and row[0] else None
+
+
+async def _user_id(page: Any, username: str, tasks: Optional[TaskStore] = None):
+    """Numeric user id: from our own capture first, else Instagram search (the profile-info
+    endpoint is rate-limited for this account)."""
+    if tasks is not None:
+        try:
+            stored = _stored_user_id(tasks, username)
+        except Exception:  # capture tables absent (tests, fresh database)
+            stored = None
+        if stored:
+            return stored
     search = await fetch_json(page, f"{INSTAGRAM_ORIGIN}/web/search/topsearch/?query={quote(username)}")
     for item in (search.get("data") or {}).get("users") or []:
         user = item.get("user") or item
@@ -165,7 +185,7 @@ LOW_WATER = 500
 
 
 # ---- random exploration: pick a niche · city · size, go deep there, then move on ----------------
-SIZE_BANDS = ((500, 5_000, "500–5K"), (5_000, 20_000, "5K–20K"), (20_000, 100_000, "20K–100K"), (100_000, 1_000_000, "100K–1M"))
+from ..constants import EXPLORATION_BANDS as SIZE_BANDS
 FOCUS_SECONDS = 30 * 60      # explore one focus for at most this long
 FOCUS_TARGET = 25            # ...or until this many creators in its niche were captured
 BARREN_SECONDS = 15 * 60     # ...or give up early if it has found nobody at all

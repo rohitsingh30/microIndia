@@ -9,4 +9,5 @@ Read the root `CLAUDE.md` first. Run everything from this directory with `PYTHON
 - **Media.** Files go under `data/media/` (git-ignored). Keep keyframes, hook frames, opus audio, transcripts and raw outputs. Delete the mp4 after analysis.
 - **Tests:** `PYTHONPATH=src .venv/bin/python -m unittest discover -s tests` (unittest, not pytest). Tests must never touch the live database: use `tempfile` databases as the existing tests do.
 - **Taxonomy and bands:** niches only in `niches.py`, follower bands only in `constants.py`.
-- **Legacy, don't extend:** `shared_dispatcher.py`, `queue.py`, `browser_owner.py`, `candidate_source.py`, `cohort.py`, `ui.py` are being removed.
+- **Legacy, don't extend:** `candidate_source.py` and the legacy-table methods in `store.py` are next to go. The rest of the old agent system was deleted on 6 Oct.
+- **Two supervisor planes:** collection (`run/local-workers.json`) and insight (`run/insight-workers.json`). New non-browser workers go in the insight plane, so adding them never restarts Chrome or the collectors.

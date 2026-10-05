@@ -195,6 +195,7 @@ def parse_profile_observation(
         capture_id=capture_id,
         handle=profile_url.rstrip("/").split("/")[-1],
         profile_url=profile_url,
+        platform_user_id=str(data["profileId"]) if str(data.get("profileId") or "").isdigit() else None,
         display_name=structured.get("name") or (data.get("title") or "").split("(")[0].strip() or None,
         bio_text=bio_text,
         external_url=data.get("externalUrl"),
@@ -434,8 +435,11 @@ async def extract_profile(page: Any, capture_id: str, profile_url: str) -> Profi
             .find(item => item && (item['@type'] === 'ProfilePage' || item['@type'] === 'Person')) || {};
           const links = Array.from(document.querySelectorAll('a[href]')).map(a => ({href: a.href, text: a.innerText}));
           const external = links.find(link => !link.href.includes('instagram.com') && link.href.startsWith('http'));
+          const html = document.documentElement.innerHTML;
+          const idMatch = html.match(/"profile_id":"(\d+)"/) || html.match(/profilePage_(\d+)/);
           return {
             url: location.href,
+            profileId: idMatch ? idMatch[1] : null,
             title: document.title,
             description: meta('og:description') || meta('description'),
             image: meta('og:image'),

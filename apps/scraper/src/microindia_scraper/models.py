@@ -37,6 +37,7 @@ class ProfileObservation:
     capture_id: str
     handle: Optional[str] = None
     profile_url: Optional[str] = None
+    platform_user_id: Optional[str] = None  # Instagram's numeric user id (pk), from the profile page
     display_name: Optional[str] = None
     bio_text: Optional[str] = None
     external_url: Optional[str] = None

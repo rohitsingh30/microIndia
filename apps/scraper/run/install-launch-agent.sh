@@ -2,17 +2,18 @@
 set -euo pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG="$ROOT/run/local-workers.json"
-PLIST="$HOME/Library/LaunchAgents/com.microindia.scraper.plist"
-LABEL="com.microindia.scraper"
 UID_VALUE="$(id -u)"
-
 mkdir -p "$ROOT/run" "$HOME/Library/LaunchAgents"
-if [[ ! -f "$CONFIG" ]]; then
-  cp "$ROOT/run/local-workers.example.json" "$CONFIG"
-fi
 
-TMP="$PLIST.tmp"
+# Two supervisors: the collection plane (Chrome, sourcer, scraper, api, watchdog) and the
+# insight plane (analyzer, backup). Each can be restarted without touching the other.
+install_plane() {
+  local LABEL="$1" CONFIG="$ROOT/run/$2.json" EXAMPLE="$ROOT/run/$2.example.json" STATE="$ROOT/run/$3-state.json" LOCK="$ROOT/run/$3.lock"
+  local PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
+  if [[ ! -f "$CONFIG" ]]; then
+    cp "$EXAMPLE" "$CONFIG"
+  fi
+  local TMP="$PLIST.tmp"
 cat > "$TMP" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -28,9 +29,9 @@ cat > "$TMP" <<EOF
     <string>--config</string>
     <string>$CONFIG</string>
     <string>--state</string>
-    <string>$ROOT/run/local-supervisor-state.json</string>
+    <string>$STATE</string>
     <string>--lock</string>
-    <string>$ROOT/run/local-supervisor.lock</string>
+    <string>$LOCK</string>
     <string>--poll-seconds</string>
     <string>2</string>
   </array>
@@ -52,18 +53,18 @@ cat > "$TMP" <<EOF
   <key>ProcessType</key>
   <string>Background</string>
   <key>StandardOutPath</key>
-  <string>$ROOT/run/launch-agent.out.log</string>
+  <string>$ROOT/run/$3.launch.out.log</string>
   <key>StandardErrorPath</key>
-  <string>$ROOT/run/launch-agent.err.log</string>
+  <string>$ROOT/run/$3.launch.err.log</string>
 </dict>
 </plist>
 EOF
-mv "$TMP" "$PLIST"
+  mv "$TMP" "$PLIST"
+  launchctl bootout "gui/$UID_VALUE/$LABEL" 2>/dev/null || true
+  launchctl bootstrap "gui/$UID_VALUE" "$PLIST"
+  launchctl kickstart -k "gui/$UID_VALUE/$LABEL"
+  printf 'Installed and started %s (config %s, state %s)\n' "$LABEL" "$CONFIG" "$STATE"
+}
 
-launchctl bootout "gui/$UID_VALUE/$LABEL" 2>/dev/null || true
-launchctl bootstrap "gui/$UID_VALUE" "$PLIST"
-launchctl kickstart -k "gui/$UID_VALUE/$LABEL"
-
-printf 'Installed and started %s\n' "$LABEL"
-printf 'Config: %s\n' "$CONFIG"
-printf 'Status: %s\n' "$ROOT/run/local-supervisor-state.json"
+install_plane com.microindia.scraper local-workers local-supervisor
+install_plane com.microindia.insights insight-workers insight-supervisor

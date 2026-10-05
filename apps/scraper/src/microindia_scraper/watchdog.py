@@ -20,7 +20,13 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-RUNNER_WORKERS = ("sourcer", "scraper")
+@dataclass
+class RunnerProgress:
+    """What one runner can and did do, judged only on its own task kinds."""
+
+    due: int  # tasks it may take right now, as the runner itself reports (honours backpressure)
+    last_finished_at: Optional[float]  # newest done/skipped task of its kinds
+    expired_leases: int  # tasks it still holds past their lease (+ grace): its slots are stuck
 
 
 @dataclass
@@ -31,6 +37,8 @@ class Observation:
     last_finished_at: Optional[float]
     queued: int
     auth_blocked: Optional[str]
+    progress: Dict[str, RunnerProgress] = field(default_factory=dict)
+    network_down: Optional[str] = None
 
 
 @dataclass
@@ -39,6 +47,9 @@ class Policy:
     stale_heartbeat_seconds: float = 300.0
     stuck_queue_seconds: float = 900.0
     grace_seconds: float = 180.0
+    # Longer than the runner's own stuck check (120s) + housekeeping + hard exit (60s), so a runner
+    # gets to exit by itself before the watchdog restarts it.
+    lease_grace_seconds: float = 300.0
 
 
 @dataclass
@@ -49,77 +60,107 @@ class WatchdogState:
 
 
 def decide(obs: Observation, state: WatchdogState, policy: Policy = Policy()) -> List[Dict[str, str]]:
-    """Pure decision step: which workers to restart and why."""
+    """Pure decision step: which workers to restart and why.
+
+    Each runner is judged on its own kinds, so a busy sourcer can no longer hide a dead scraper.
+    """
     actions: List[Dict[str, str]] = []
 
     def cooling(worker: str) -> bool:
         since = obs.now - state.last_restart.get(worker, state.started_at - policy.grace_seconds)
         return since < policy.grace_seconds
 
+    def acting(worker: str) -> bool:
+        return any(action["worker"] == worker for action in actions)
+
     state.cdp_failures = 0 if obs.cdp_ok else state.cdp_failures + 1
     if state.cdp_failures >= policy.cdp_failures_before_restart and not cooling("chrome"):
         actions.append({"worker": "chrome", "reason": f"CDP unreachable {state.cdp_failures} checks in a row"})
         state.cdp_failures = 0
-    for worker in RUNNER_WORKERS:
-        beat = obs.heartbeats.get(worker)
+    for worker, beat in obs.heartbeats.items():
         if beat is not None and obs.now - beat > policy.stale_heartbeat_seconds and not cooling(worker):
             actions.append({"worker": worker, "reason": f"no heartbeat for {obs.now - beat:.0f}s"})
-    stalled_for = obs.now - (obs.last_finished_at or state.started_at)
-    if (
-        obs.queued > 0
-        and not obs.auth_blocked
-        and obs.cdp_ok
-        and stalled_for > policy.stuck_queue_seconds
-        and not any(action["worker"] in RUNNER_WORKERS for action in actions)
-    ):
-        for worker in RUNNER_WORKERS:
-            if not cooling(worker):
-                actions.append({"worker": worker, "reason": f"{obs.queued} tasks queued but none finished for {stalled_for:.0f}s"})
+    paused = obs.auth_blocked or obs.network_down or not obs.cdp_ok
+    for worker, progress in sorted(obs.progress.items()):
+        if paused or acting(worker) or cooling(worker):
+            continue
+        if progress.expired_leases:
+            actions.append({"worker": worker,
+                            "reason": f"{progress.expired_leases} task(s) held past their lease: slots stuck"})
+            continue
+        stalled_for = obs.now - (progress.last_finished_at or state.started_at)
+        if progress.due > 0 and stalled_for > policy.stuck_queue_seconds:
+            actions.append({"worker": worker,
+                            "reason": f"{progress.due} tasks due but none of its kinds finished for {stalled_for:.0f}s"})
     for action in actions:
         state.last_restart[action["worker"]] = obs.now
     return actions
 
 
-def observe(database: str, cdp_url: str) -> Observation:
+def observe(database: str, cdp_url: str, *, lease_grace_seconds: float = Policy.lease_grace_seconds) -> Observation:
     try:
         urllib.request.urlopen(f"{cdp_url}/json/version", timeout=5).read()
         cdp_ok = True
     except Exception:
         cdp_ok = False
+    now = time.time()
     connection = sqlite3.connect(database, timeout=10)
     connection.row_factory = sqlite3.Row
+    heartbeats: Dict[str, float] = {}
+    progress: Dict[str, RunnerProgress] = {}
+    last, queued, flag, network = None, 0, None, None
     try:
         try:
-            heartbeats = {row["runner_id"]: row["last_heartbeat"] for row in connection.execute(
-                "SELECT runner_id, last_heartbeat FROM runners WHERE status != 'stopped'")}
+            runners = connection.execute("SELECT * FROM runners WHERE status != 'stopped'").fetchall()
+            for row in runners:
+                heartbeats[row["runner_id"]] = row["last_heartbeat"]
+                kinds = [kind for kind in str(row["kinds"] or "").split(",") if kind]
+                if not kinds:
+                    continue
+                marks = ",".join("?" for _ in kinds)
+                finished = connection.execute(
+                    f"SELECT MAX(finished_at) FROM tasks WHERE kind IN ({marks}) AND state IN ('done','skipped')",
+                    kinds).fetchone()[0]
+                expired = connection.execute(
+                    "SELECT COUNT(*) FROM tasks WHERE state='leased' AND leased_by=? AND lease_until < ?",
+                    (row["runner_id"], now - lease_grace_seconds)).fetchone()[0]
+                due = row["due"] if "due" in row.keys() and row["due"] is not None else 0
+                progress[row["runner_id"]] = RunnerProgress(int(due), finished, int(expired))
             last = connection.execute("SELECT MAX(finished_at) FROM tasks").fetchone()[0]
             # Only work that is due counts; retries waiting on run_at are not a stall.
             queued = connection.execute(
-                "SELECT COUNT(*) FROM tasks WHERE state='queued' AND run_at <= ?", (time.time(),)
+                "SELECT COUNT(*) FROM tasks WHERE state='queued' AND run_at <= ?", (now,)
             ).fetchone()[0]
-            flag = connection.execute("SELECT value FROM runtime_flags WHERE name='auth_blocked'").fetchone()
+            flags = {r["name"]: r["value"] for r in connection.execute(
+                "SELECT name, value FROM runtime_flags WHERE name IN ('auth_blocked', 'network_down')")}
+            flag, network = flags.get("auth_blocked"), flags.get("network_down")
         except sqlite3.OperationalError:
-            heartbeats, last, queued, flag = {}, None, 0, None
+            pass
     finally:
         connection.close()
-    return Observation(time.time(), cdp_ok, heartbeats, last, int(queued), flag[0] if flag else None)
+    return Observation(now, cdp_ok, heartbeats, last, int(queued), flag, progress, network)
 
 
-def restart_worker(state_path: str, worker: str) -> Optional[int]:
-    """Signal the worker's pid; the supervisor restarts it."""
-    try:
-        workers = json.load(open(state_path)).get("workers", {})
-    except (OSError, json.JSONDecodeError):
-        return None
-    info = workers.get(worker) or {}
-    pid = info.get("pid")
-    if not pid or info.get("status") != "running":
-        return None
-    try:
-        os.kill(int(pid), signal.SIGTERM)
-    except ProcessLookupError:
-        return None
-    return int(pid)
+def restart_worker(state_paths: Any, worker: str) -> Optional[int]:
+    """Signal the worker's pid; whichever supervisor owns it restarts it.
+
+    ``state_paths`` is one supervisor state file or a list of them (collection and insight planes).
+    """
+    for state_path in [state_paths] if isinstance(state_paths, str) else list(state_paths):
+        try:
+            workers = json.load(open(state_path)).get("workers", {})
+        except (OSError, json.JSONDecodeError):
+            continue
+        info = workers.get(worker) or {}
+        pid = info.get("pid")
+        if not pid or info.get("status") != "running":
+            continue
+        try:
+            os.kill(int(pid), signal.SIGTERM)
+        except ProcessLookupError:
+            continue
+        return int(pid)
+    return None
 
 
 def sample_system(cdp_url: str, database: str) -> Dict[str, float]:
@@ -190,6 +231,9 @@ def write_health(path: str, obs: Observation, state: WatchdogState, recent: List
         "last_task_finished_at": obs.last_finished_at,
         "queued_due": obs.queued,
         "auth_blocked": obs.auth_blocked,
+        "network_down": obs.network_down,
+        "progress": {name: {"due": p.due, "last_finished_at": p.last_finished_at, "expired_leases": p.expired_leases}
+                     for name, p in obs.progress.items()},
         "recent_actions": recent[-20:],
     }
     tmp = f"{path}.tmp"
@@ -202,11 +246,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Keep the microIndia collector healthy")
     parser.add_argument("--database", default=os.environ.get("MICROINDIA_DATABASE", "data/microindia.sqlite3"))
     parser.add_argument("--cdp-url", default=os.environ.get("MICROINDIA_CDP_URL", "http://127.0.0.1:9222"))
-    parser.add_argument("--supervisor-state", default="run/local-supervisor-state.json")
+    parser.add_argument("--supervisor-state", action="append", default=None,
+                        help="supervisor state file(s); default: collection and insight planes")
     parser.add_argument("--health-file", default="run/health.json")
     parser.add_argument("--interval", type=float, default=30.0)
     parser.add_argument("--sweep-every", type=int, default=4, help="hung-tab sweep every N cycles")
     args = parser.parse_args()
+    args.supervisor_state = args.supervisor_state or ["run/local-supervisor-state.json",
+                                                      "run/insight-supervisor-state.json"]
     state = WatchdogState()
     recent: List[Dict[str, Any]] = []
     cycle = 0

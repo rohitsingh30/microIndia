@@ -144,10 +144,11 @@ class TaskStoreTest(unittest.TestCase):
     def test_expired_lease_is_released_then_failed_at_cap(self):
         self.store.enqueue("k", "t")
         now = time.time()
-        for _ in range(3):
-            self.assertIsNotNone(self.store.lease("r", ["k"], lease_seconds=10, now=now))
+        # Each holder dies holding the task; another runner picks the expired lease up.
+        for holder in ("r1", "r2", "r3"):
+            self.assertIsNotNone(self.store.lease(holder, ["k"], lease_seconds=10, now=now))
             now += 11
-        self.assertIsNone(self.store.lease("r", ["k"], now=now))
+        self.assertIsNone(self.store.lease("r4", ["k"], now=now))
         self.assertEqual(self.store.counts()["k"], {"failed": 1})
 
     def test_release_leases_on_restart(self):
@@ -370,3 +371,193 @@ class PacerRobustnessTest(unittest.TestCase):
             connection.execute("UPDATE runtime_flags SET value='garbage' WHERE name='pace'")
             connection.commit()
             self.assertEqual(Pacer(db).state()["delay"], START_DELAY)
+
+
+@handler("test.offline")
+async def _offline_handler(ctx, task):
+    raise RuntimeError("Page.goto: net::ERR_INTERNET_DISCONNECTED at https://www.instagram.com/x/")
+
+
+@handler("test.long", needs_page=False, timeout_seconds=3600)
+async def _long_handler(ctx, task):
+    row = ctx.tasks.connection.execute("SELECT lease_until FROM tasks WHERE task_id=?", (task["task_id"],)).fetchone()
+    CALLS.append(("long", task["key"], row["lease_until"]))
+    return Done()
+
+
+class ReliabilityTest(unittest.TestCase):
+    """Network loss pauses instead of failing; stuck slots and stuck browser calls end the runner."""
+
+    def setUp(self):
+        CALLS.clear()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = os.path.join(self.tmp.name, "t.sqlite3")
+        self.store = TaskStore(self.db, max_attempts=3)
+
+    def tearDown(self):
+        self.store.close()
+        self.tmp.cleanup()
+
+    def _runner(self, kinds, *, probe=None, **extra):
+        session, browser = fake_session()
+
+        async def unreachable():
+            return False
+
+        runner = Runner(tasks=self.store, session=session, kinds=kinds, tabs=1, database=self.db,
+                        runner_id="rel-runner", poll_seconds=0.01, housekeeping_seconds=0.01,
+                        network_probe=probe or unreachable, **extra)
+        return runner, browser
+
+    def test_offline_gives_the_attempt_back_and_pauses_everyone(self):
+        self.store.enqueue("test.offline", "a")
+        runner, _ = self._runner(["test.offline"], max_tasks=1)
+        asyncio.run(asyncio.wait_for(runner.run(), 5))
+        row = self.store.connection.execute("SELECT state, attempts, run_at FROM tasks").fetchone()
+        self.assertEqual((row["state"], row["attempts"]), ("queued", 0))
+        self.assertIn("ERR_INTERNET_DISCONNECTED", self.store.network_down())
+
+    def test_offline_looking_error_with_working_network_is_a_normal_retry(self):
+        self.store.enqueue("test.offline", "a")
+
+        async def reachable():
+            return True
+
+        runner, _ = self._runner(["test.offline"], probe=reachable, max_tasks=1)
+        asyncio.run(asyncio.wait_for(runner.run(), 5))
+        row = self.store.connection.execute("SELECT state, attempts FROM tasks").fetchone()
+        self.assertEqual((row["state"], row["attempts"]), ("queued", 1))
+        self.assertIsNone(self.store.network_down())
+
+    def test_offline_never_exhausts_attempts(self):
+        task_id = self.store.enqueue("test.offline", "a")
+        for _ in range(6):  # more failures than max_attempts
+            self.store.connection.execute("UPDATE tasks SET run_at=0 WHERE kind='test.offline'")
+            task = self.store.lease("r", ["test.offline"])
+            from microindia_scraper.runtime import Offline
+            self.store.apply(task, "r", Offline("net::ERR_INTERNET_DISCONNECTED"))
+        self.assertEqual(self.store.connection.execute("SELECT state FROM tasks").fetchone()["state"], "queued")
+
+    def test_network_back_clears_pause_and_makes_parked_work_due(self):
+        self.store.enqueue("test.offline", "a")
+        runner, _ = self._runner(["test.offline"], max_tasks=1)
+        asyncio.run(asyncio.wait_for(runner.run(), 5))
+        self.assertTrue(self.store.network_down())
+
+        async def reachable():
+            return True
+
+        runner2, _ = self._runner(["test.scrape"], probe=reachable)
+
+        async def one_housekeeping_pass():
+            task = asyncio.create_task(runner2._housekeeping())
+            await asyncio.sleep(0.05)
+            runner2.stop()
+            await task
+
+        asyncio.run(one_housekeeping_pass())
+        self.assertIsNone(self.store.network_down())
+        row = self.store.connection.execute("SELECT run_at FROM tasks").fetchone()
+        self.assertLessEqual(row["run_at"], time.time())
+
+    def test_runner_with_expired_leases_stops_itself(self):
+        self.store.enqueue("test.long", "stuck")
+        self.store.lease("rel-runner", ["test.long"], lease_seconds=-1000)  # held long past expiry
+        runner, _ = self._runner(["test.long"])
+        asyncio.run(asyncio.wait_for(runner._housekeeping(), 5))
+        self.assertIn("held past their lease", repr(runner._fatal))
+
+    def test_hanging_tab_operation_stops_the_runner(self):
+        self.store.enqueue("test.scrape", "boom")  # crashes -> tab replace, which we make hang
+        runner, _ = self._runner(["test.scrape"], max_tasks=1, tab_op_timeout=0.05)
+
+        async def hang(self, tab):
+            await asyncio.sleep(3600)
+
+        saved, TabPool.replace = TabPool.replace, hang
+        try:
+            with self.assertRaises(Exception) as caught:
+                asyncio.run(asyncio.wait_for(runner.run(), 5))
+        finally:
+            TabPool.replace = saved
+        self.assertIn("could not replace tab", repr(caught.exception))
+
+    def test_long_handler_extends_its_lease(self):
+        self.store.enqueue("test.long", "x")
+        runner, _ = self._runner(["test.long"], max_tasks=1)
+        started = time.time()
+        asyncio.run(asyncio.wait_for(runner.run(), 5))
+        self.assertGreater(CALLS[0][2], started + 3600)
+
+    def test_due_count_honours_priority_floor(self):
+        self.store.enqueue("test.scrape", "low", priority=1)
+        self.store.enqueue("test.scrape", "high", priority=9)
+        self.assertEqual(self.store.due_count(["test.scrape"]), 2)
+        self.assertEqual(self.store.due_count(["test.scrape"], priority_floor={"test.scrape": 5}), 1)
+
+    def test_requeue_failed_by_error(self):
+        for key, error in (("a", "gave up: net::ERR_INTERNET_DISCONNECTED"), ("b", "gave up: parse error")):
+            self.store.enqueue("test.scrape", key)
+            self.store.connection.execute("UPDATE tasks SET state='failed', attempts=3, last_error=? WHERE key=?",
+                                          (error, key))
+        self.assertEqual(self.store.requeue_failed(error_like="%ERR_INTERNET_DISCONNECTED%"), 1)
+        states = dict(self.store.connection.execute("SELECT key, state FROM tasks").fetchall())
+        self.assertEqual(states, {"a": "queued", "b": "failed"})
+
+
+class LeaseOwnershipTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = os.path.join(self.tmp.name, "t.sqlite3")
+        self.store = TaskStore(self.db, max_attempts=3)
+
+    def tearDown(self):
+        self.store.close()
+        self.tmp.cleanup()
+
+    def test_runner_never_releases_its_own_stuck_task_to_itself(self):
+        self.store.enqueue("test.scrape", "stuck")
+        self.store.lease("r1", ["test.scrape"], lease_seconds=-10)  # slot 1 holds it past expiry
+        self.assertIsNone(self.store.lease("r1", ["test.scrape"]))  # slot 2 of the same runner
+        self.assertEqual(self.store.expired_leases("r1"), 1)  # so the stall stays visible
+        self.assertEqual(self.store.due_count(["test.scrape"], runner_id="r1"), 0)
+        self.assertIsNotNone(self.store.lease("r2", ["test.scrape"]))  # another runner may take over
+
+    def test_normal_stop_refunds_the_attempt(self):
+        self.store.enqueue("test.scrape", "a")
+        self.store.lease("r1", ["test.scrape"])
+        self.assertEqual(self.store.refund_leases("r1"), 1)
+        row = self.store.connection.execute("SELECT state, attempts, leased_by FROM tasks").fetchone()
+        self.assertEqual((row["state"], row["attempts"], row["leased_by"]), ("queued", 0, None))
+
+    def test_hard_exit_refunds_on_clean_stop_but_not_after_a_crash(self):
+        from unittest import mock
+
+        for fatal, expected_attempts, expected_code in ((None, 0, 0), (RuntimeError("boom"), 1, 1)):
+            self.store.connection.execute("DELETE FROM tasks")
+            self.store.enqueue("test.scrape", "a")
+            self.store.lease("rx", ["test.scrape"])
+            session, _ = fake_session()
+            runner = Runner(tasks=self.store, session=session, kinds=["test.scrape"], tabs=1, database=self.db,
+                            runner_id="rx", hard_exit_seconds=1)
+            runner._fatal = fatal
+            with mock.patch("microindia_scraper.runtime.runner.os._exit") as fake_exit:
+                runner._hard_exit()
+            fake_exit.assert_called_once_with(expected_code)
+            attempts = self.store.connection.execute("SELECT attempts FROM tasks").fetchone()["attempts"]
+            self.assertEqual(attempts, expected_attempts)
+
+    def test_browser_that_never_starts_ends_the_runner(self):
+        session, _ = fake_session()
+
+        async def never():
+            await asyncio.sleep(3600)
+
+        session.start = never
+        runner = Runner(tasks=self.store, session=session, kinds=["test.scrape"], tabs=1, database=self.db,
+                        runner_id="rs", start_timeout=0.05)
+        with self.assertRaises(Exception) as caught:
+            asyncio.run(asyncio.wait_for(runner.run(), 5))
+        self.assertIn("did not start", repr(caught.exception))
+        status = self.store.connection.execute("SELECT status FROM runners WHERE runner_id='rs'").fetchone()["status"]
+        self.assertEqual(status, "starting")  # visible to the watchdog's stale-heartbeat check

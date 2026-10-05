@@ -60,18 +60,27 @@ def snapshot(database: str = DEFAULT_DATABASE, run_dir: str = "run") -> Dict[str
         for kind in kinds:
             last = _scalar(connection, "SELECT MAX(finished_at) FROM tasks WHERE kind=? AND state IN ('done','skipped')",
                            (kind,))
-            due = _scalar(connection, "SELECT COUNT(*) FROM tasks WHERE kind=? AND state='queued' AND run_at<=?",
-                          (kind, now)) or 0
-            expired = _scalar(connection, "SELECT COUNT(*) FROM tasks WHERE kind=? AND state='leased' AND lease_until<?",
-                              (kind, now)) or 0
             hour = _scalar(connection, "SELECT COUNT(*) FROM tasks WHERE kind=? AND finished_at>?", (kind, now - 3600)) or 0
-            idle = round((now - last) / 60, 1) if last else None
             progress[kind] = {
                 "finished_last_hour": hour,
-                "minutes_since_progress": idle,
-                "due": due,
-                "expired_leases": expired,
-                "stalled": bool(due and (idle is None or idle > STALL_MINUTES)) or expired > 0,
+                "minutes_since_progress": round((now - last) / 60, 1) if last else None,
+            }
+        # Stalls are judged per runner, like the watchdog: on the work it may take right now
+        # (its reported ``due`` honours backpressure) and on leases it holds past expiry.
+        runner_health = {}
+        runner_columns = {row[1] for row in connection.execute("PRAGMA table_info(runners)")}
+        for row in connection.execute("SELECT * FROM runners WHERE status != 'stopped'"):
+            own = [kind for kind in str(row["kinds"] or "").split(",") if kind]
+            marks = ",".join("?" for _ in own) or "''"
+            last = _scalar(connection, f"SELECT MAX(finished_at) FROM tasks WHERE kind IN ({marks}) "
+                                       "AND state IN ('done','skipped')", tuple(own))
+            expired = _scalar(connection, "SELECT COUNT(*) FROM tasks WHERE state='leased' AND leased_by=? "
+                                          "AND lease_until<?", (row["runner_id"], now - 120)) or 0
+            due = (row["due"] if "due" in runner_columns else None) or 0
+            idle = round((now - last) / 60, 1) if last else None
+            runner_health[row["runner_id"]] = {
+                "due": due, "minutes_since_progress": idle, "expired_leases": expired,
+                "stalled": expired > 0 or bool(due and (idle is None or idle > STALL_MINUTES)),
             }
         kept = _scalar(connection, "SELECT COUNT(*) FROM tasks WHERE kind='scrape.profile' AND state='done'") or 0
         kept_hour = _scalar(connection, "SELECT COUNT(*) FROM tasks WHERE kind='scrape.profile' AND state='done' "
@@ -99,22 +108,25 @@ def snapshot(database: str = DEFAULT_DATABASE, run_dir: str = "run") -> Dict[str
         connection.close()
 
     workers: Dict[str, Any] = {}
-    state_path = os.path.join(run_dir, "local-supervisor-state.json")
-    try:
-        with open(state_path) as handle:
-            state = json.load(handle)
+    for plane, filename in (("collection", "local-supervisor-state.json"), ("insight", "insight-supervisor-state.json")):
+        try:
+            with open(os.path.join(run_dir, filename)) as handle:
+                state = json.load(handle)
+        except (OSError, ValueError):
+            continue
         for name, info in (state.get("workers") or {}).items():
-            workers[name] = {"pid": info.get("pid"), "status": info.get("status"), "alive": _pid_alive(info.get("pid"))}
-    except (OSError, ValueError):
-        pass
+            workers[name] = {"plane": plane, "pid": info.get("pid"), "status": info.get("status"),
+                             "alive": _pid_alive(info.get("pid"))}
 
     issues: List[str] = []
+    if flags.get("network_down"):
+        issues.append(f"network down, all runners paused: {flags['network_down'][:80]}")
     if flags.get("auth_blocked"):
         issues.append(f"Instagram sign-in needed: {flags['auth_blocked']}")
-    for kind, info in progress.items():
-        if info["stalled"]:
-            issues.append(f"{kind} stalled: {info['due']} due, no progress for {info['minutes_since_progress']} min, "
-                          f"{info['expired_leases']} expired leases")
+    for runner_id, info in runner_health.items():
+        if info["stalled"] and not flags.get("network_down") and not flags.get("auth_blocked"):
+            issues.append(f"runner {runner_id} stalled: {info['due']} tasks it may take, no progress for "
+                          f"{info['minutes_since_progress']} min, {info['expired_leases']} expired leases")
     for name, info in workers.items():
         if info["status"] == "running" and not info["alive"]:
             issues.append(f"worker {name} marked running but pid {info['pid']} is dead")
@@ -124,6 +136,7 @@ def snapshot(database: str = DEFAULT_DATABASE, run_dir: str = "run") -> Dict[str
         "data": data,
         "tasks": kinds,
         "progress": progress,
+        "runner_health": runner_health,
         "runners": runners,
         "workers": workers,
         "focus": json.loads(flags["focus"]) if flags.get("focus") else None,
@@ -164,16 +177,19 @@ def markdown(snap: Dict[str, Any]) -> str:
     ]
     for key, value in d.items():
         out.append(f"| {key.replace('_', ' ')} | {value if value is not None else '—'} |")
-    out += ["", "## Pipeline", "", "| Kind | Queued | Done | Skipped | Failed | Last hour | Idle min | Stalled |",
-            "|---|---|---|---|---|---|---|---|"]
+    out += ["", "## Pipeline", "", "| Kind | Queued | Done | Skipped | Failed | Last hour | Idle min |",
+            "|---|---|---|---|---|---|---|"]
     for kind, states in sorted(snap["tasks"].items()):
         p = snap["progress"].get(kind, {})
         out.append(f"| `{kind}` | {states.get('queued', 0)} | {states.get('done', 0)} | {states.get('skipped', 0)} | "
-                   f"{states.get('failed', 0)} | {p.get('finished_last_hour')} | {p.get('minutes_since_progress')} | "
-                   f"{'**yes**' if p.get('stalled') else 'no'} |")
-    out += ["", "## Workers", "", "| Worker | Status | Alive |", "|---|---|---|"]
+                   f"{states.get('failed', 0)} | {p.get('finished_last_hour')} | {p.get('minutes_since_progress')} |")
+    out += ["", "## Runners", "", "| Runner | May take now | Idle min | Expired leases | Stalled |", "|---|---|---|---|---|"]
+    for runner_id, info in sorted(snap["runner_health"].items()):
+        out.append(f"| {runner_id} | {info['due']} | {info['minutes_since_progress']} | {info['expired_leases']} | "
+                   f"{'**yes**' if info['stalled'] else 'no'} |")
+    out += ["", "## Workers", "", "| Worker | Plane | Status | Alive |", "|---|---|---|---|"]
     for name, info in sorted(snap["workers"].items()):
-        out.append(f"| {name} | {info['status']} | {'yes' if info['alive'] else 'no'} |")
+        out.append(f"| {name} | {info['plane']} | {info['status']} | {'yes' if info['alive'] else 'no'} |")
     out += ["", "## Open issues", ""]
     out += [f"- {issue}" for issue in snap["issues"]] or ["- none"]
     if snap.get("focus"):
