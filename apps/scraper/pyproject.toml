@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "microindia-scraper"
+version = "0.1.0"
+description = "Incremental local dataset collector for microIndia influencer profiles"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+browser = [
+  "browser-use>=0.6.0",
+  "playwright>=1.49.0",
+  "websockets>=12.0",
+]
+dev = [
+  "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

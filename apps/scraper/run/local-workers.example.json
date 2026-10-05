@@ -1,0 +1,128 @@
+{
+  "workers": [
+    {
+      "name": "keep-awake",
+      "command": [
+        "/usr/bin/caffeinate",
+        "-ims"
+      ],
+      "log_file": "run/keep-awake.log",
+      "restart": true,
+      "max_restarts": null,
+      "cooldown_seconds": 5
+    },
+    {
+      "name": "chrome",
+      "command": [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "--remote-debugging-port=9222",
+        "--user-data-dir=/Users/rohit/Library/Application Support/Google/Chrome-cdp-profile2",
+        "--profile-directory=Profile 2",
+        "--no-first-run",
+        "--no-default-browser-check"
+      ],
+      "log_file": "run/chrome-profile-2.log",
+      "restart": true,
+      "max_restarts": null,
+      "cooldown_seconds": 10
+    },
+    {
+      "name": "sourcer",
+      "command": [
+        "env",
+        "PYTHONPATH=src",
+        ".venv/bin/python",
+        "-m",
+        "microindia_scraper.run",
+        "--database",
+        "data/microindia.sqlite3",
+        "work",
+        "--kinds",
+        "source.*",
+        "--tabs",
+        "2",
+        "--name",
+        "sourcer"
+      ],
+      "log_file": "run/sourcer.log",
+      "restart": true,
+      "max_restarts": null,
+      "cooldown_seconds": 15
+    },
+    {
+      "name": "scraper",
+      "command": [
+        "env",
+        "PYTHONPATH=src",
+        ".venv/bin/python",
+        "-m",
+        "microindia_scraper.run",
+        "--database",
+        "data/microindia.sqlite3",
+        "work",
+        "--kinds",
+        "scrape.*",
+        "--tabs",
+        "8",
+        "--name",
+        "scraper"
+      ],
+      "log_file": "run/scraper.log",
+      "restart": true,
+      "max_restarts": null,
+      "cooldown_seconds": 15
+    },
+    {
+      "name": "api",
+      "command": [
+        "env",
+        "PYTHONPATH=src",
+        ".venv/bin/python",
+        "-m",
+        "microindia_scraper.api",
+        "--database",
+        "data/microindia.sqlite3",
+        "--port",
+        "8787"
+      ],
+      "log_file": "run/api.log",
+      "restart": true,
+      "max_restarts": null,
+      "cooldown_seconds": 3
+    },
+    {
+      "name": "watchdog",
+      "command": [
+        "env",
+        "PYTHONPATH=src",
+        ".venv/bin/python",
+        "-m",
+        "microindia_scraper.watchdog",
+        "--database",
+        "data/microindia.sqlite3"
+      ],
+      "log_file": "run/watchdog.log",
+      "restart": true,
+      "max_restarts": null,
+      "cooldown_seconds": 10
+    },
+    {
+      "name": "reel-backfill",
+      "command": [
+        "env",
+        "PYTHONPATH=src",
+        ".venv/bin/python",
+        "-m",
+        "microindia_scraper.backfill_reel_analysis",
+        "--database",
+        "data/microindia.sqlite3",
+        "--batch-size",
+        "25"
+      ],
+      "log_file": "run/reel-backfill.log",
+      "restart": false,
+      "max_restarts": 0,
+      "cooldown_seconds": 1
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+# Runtime data: the database, media, backups and evals output live outside git
+apps/scraper/data/*
+!apps/scraper/data/evals/
+apps/scraper/data/evals/runs/
+
+# Process state and logs
+apps/scraper/run/*.log
+apps/scraper/run/*.pid
+apps/scraper/run/*.lock
+apps/scraper/run/*-state.json
+apps/scraper/run/health.json
+apps/scraper/run/browser-health.json
+apps/scraper/run/local-workers.json
+apps/scraper/run/tabs/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+qa-shots/
+*.tsbuildinfo
+
+# Local tooling
+.DS_Store
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
