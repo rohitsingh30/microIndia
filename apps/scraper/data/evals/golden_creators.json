@@ -1,0 +1,586 @@
+{
+ "version": 1,
+ "built": "2026-10-06",
+ "built_by": "data-quality agent",
+ "how_to_read": "'expected' uses dossier paths and is scored by analysis/evals.py once a current creator dossier exists. 'labels' (India, human vs business, city, brand_ready) are ground truth for the label audit and for any future scorer over creator_features / api fields; evals.py does not read them. Languages come from captions (and transcripts where analysed); brands from paid labels, #ad/#collab and caption-tagged integrations.",
+ "items": [
+  {
+   "handle": "shvtas",
+   "note": "Shweta Tanwar Mukherjee, Gurugram mom + wellness coach; 13 reels hand-checked: English speech, paid deals with Be Clinical, Revital, Dabur, Pronto, Bournvita, Vi-John Prakritik.",
+   "strata": {
+    "band": "100K+ (above product band, inside scrape slack)",
+    "niche": "skincare/wellness",
+    "brand_ready": true
+   },
+   "expected": {
+    "category_fit.top": {
+     "any_of": [
+      "skincare",
+      "nutrition & health",
+      "parenting",
+      "yoga & wellness",
+      "beauty"
+     ]
+    },
+    "voice.languages": {
+     "any_of": [
+      [
+       "English"
+      ],
+      [
+       "English",
+       "Hindi"
+      ]
+     ]
+    },
+    "brands.worked_with": [
+     "Be Clinical",
+     "Revital",
+     "Dabur",
+     "Pronto",
+     "Bournvita",
+     "Prakritik"
+    ]
+   },
+   "labels": {
+    "india": true,
+    "account": "human creator",
+    "city": "Gurugram (Delhi NCR)",
+    "followers": 110000,
+    "brand_ready": true
+   },
+   "unverified": []
+  },
+  {
+   "handle": "manas_rekhi",
+   "note": "Manas Rekhi, 'Fashion influencer from Delhi'; English speech in reels, Hinglish captions; paid Foxtale + Minimalist, many caption-tagged brand integrations.",
+   "strata": {
+    "band": "10K-50K",
+    "niche": "fashion",
+    "brand_ready": true
+   },
+   "expected": {
+    "category_fit.top": "fashion",
+    "voice.languages": {
+     "any_of": [
+      [
+       "English"
+      ],
+      [
+       "English",
+       "Hindi"
+      ],
+      [
+       "English",
+       "Hinglish"
+      ]
+     ]
+    },
+    "brands.worked_with": [
+     "Foxtale",
+     "Minimalist",
+     "Flipkart",
+     "Wild Stone",
+     "Kesh King",
+     "Vilvah",
+     "The Man Company",
+     "Neesh",
+     "Bear House"
+    ]
+   },
+   "labels": {
+    "india": true,
+    "account": "human creator",
+    "city": "Delhi",
+    "followers": 14000,
+    "brand_ready": true
+   },
+   "unverified": []
+  },
+  {
+   "handle": "your.legal.sakhi",
+   "note": "Mansi Singh, advocate in Delhi, explains Indian law in Hindi/Hinglish to camera; no brand work in captured posts.",
+   "strata": {
+    "band": "50K-100K",
+    "niche": "law",
+    "brand_ready": false
+   },
+   "expected": {
+    "category_fit.top": "law & public affairs",
+    "voice.languages": {
+     "any_of": [
+      [
+       "Hindi"
+      ],
+      [
+       "Hindi",
+       "English"
+      ],
+      [
+       "Hinglish"
+      ],
+      [
+       "Hinglish",
+       "English"
+      ]
+     ]
+    },
+    "brands.worked_with": []
+   },
+   "labels": {
+    "india": true,
+    "account": "human creator (IG label 'Lawyer & Law Firm', but a named individual)",
+    "city": "Delhi",
+    "followers": 62000,
+    "brand_ready": false
+   },
+   "unverified": []
+  },
+  {
+   "handle": "thefizzlinggourmets",
+   "note": "Riddhi | Shiva food duo; 4 paid ice-cream reels (Cornetto, Kwality Wall's) with #ad; Hinglish/English captions; city not stated in bio (only #delhi hashtags).",
+   "strata": {
+    "band": "10K-50K",
+    "niche": "food",
+    "brand_ready": true
+   },
+   "expected": {
+    "category_fit.top": "food",
+    "voice.languages": {
+     "any_of": [
+      [
+       "English",
+       "Hindi"
+      ],
+      [
+       "English",
+       "Hinglish"
+      ],
+      [
+       "Hinglish"
+      ],
+      [
+       "English"
+      ]
+     ]
+    },
+    "brands.worked_with": [
+     "Cornetto",
+     "Kwality Wall"
+    ]
+   },
+   "labels": {
+    "india": true,
+    "account": "human creators (duo)",
+    "city": null,
+    "followers": 38000,
+    "brand_ready": true
+   },
+   "unverified": []
+  },
+  {
+   "handle": "me_nishabhardwaj",
+   "note": "Nisha Bhardwaj, 'Lifestyle Blogger | Delhi'; mixed lifestyle promos (treadmill, sunscreen, period panty, dishwash, skincare); #AD Vaseline, paid Clayco.",
+   "strata": {
+    "band": "50K-100K",
+    "niche": "lifestyle (labelled skincare)",
+    "brand_ready": true
+   },
+   "expected": {
+    "category_fit.top": {
+     "any_of": [
+      "lifestyle & vlogs",
+      "skincare",
+      "beauty",
+      "home & decor"
+     ]
+    },
+    "voice.languages": {
+     "any_of": [
+      [
+       "English",
+       "Hindi"
+      ],
+      [
+       "Hinglish"
+      ],
+      [
+       "English",
+       "Hinglish"
+      ],
+      [
+       "English"
+      ]
+     ]
+    },
+    "brands.worked_with": [
+     "Vaseline",
+     "Clayco",
+     "Maxpro",
+     "Mahina",
+     "Koparo",
+     "Mamaearth",
+     "Faces Canada"
+    ]
+   },
+   "labels": {
+    "india": true,
+    "account": "human creator",
+    "city": "Delhi",
+    "followers": 56000,
+    "brand_ready": true
+   },
+   "unverified": []
+  },
+  {
+   "handle": "delhitravelblogger",
+   "note": "Chetan Pal, Delhi travel blogger; Hinglish captions throughout; '#Collab with @airspacetravel.in' Kerala trip.",
+   "strata": {
+    "band": "100K+",
+    "niche": "travel",
+    "brand_ready": true
+   },
+   "expected": {
+    "category_fit.top": "travel",
+    "voice.languages": {
+     "any_of": [
+      [
+       "Hindi"
+      ],
+      [
+       "Hinglish"
+      ],
+      [
+       "Hindi",
+       "English"
+      ],
+      [
+       "Hinglish",
+       "English"
+      ]
+     ]
+    },
+    "brands.worked_with": [
+     "Airspace Travel"
+    ]
+   },
+   "labels": {
+    "india": true,
+    "account": "human creator",
+    "city": "Delhi",
+    "followers": 111000,
+    "brand_ready": true
+   },
+   "unverified": []
+  },
+  {
+   "handle": "ishuka.a",
+   "note": "Ishika Jaiswal, fashion influencer, Delhi; 5 paid posts (Shein x2, Astaberry, Yousta, Lavie); English captions.",
+   "strata": {
+    "band": "10K-50K",
+    "niche": "fashion",
+    "brand_ready": true
+   },
+   "expected": {
+    "category_fit.top": {
+     "any_of": [
+      "fashion",
+      "beauty"
+     ]
+    },
+    "voice.languages": {
+     "any_of": [
+      [
+       "English"
+      ],
+      [
+       "English",
+       "Hindi"
+      ]
+     ]
+    },
+    "brands.worked_with": [
+     "Shein",
+     "Astaberry",
+     "Yousta",
+     "Lavie"
+    ]
+   },
+   "labels": {
+    "india": true,
+    "account": "human creator",
+    "city": "Delhi",
+    "followers": 28000,
+    "brand_ready": true
+   },
+   "unverified": []
+  },
+  {
+   "handle": "hyangla_bibi",
+   "note": "Riya, Kolkata home chef; Bengali + English captions; '#Ad' Ganesh Spices (bio highlights also name Kwality Walls, Mio Amore, ITC, Domino's).",
+   "strata": {
+    "band": "100K+",
+    "niche": "food (Bengali)",
+    "brand_ready": true
+   },
+   "expected": {
+    "category_fit.top": "food",
+    "voice.languages": {
+     "any_of": [
+      [
+       "Bengali",
+       "English"
+      ],
+      [
+       "Bengali"
+      ],
+      [
+       "English",
+       "Bengali",
+       "Hindi"
+      ]
+     ]
+    },
+    "brands.worked_with": [
+     "Ganesh Spices"
+    ]
+   },
+   "labels": {
+    "india": true,
+    "account": "human creator",
+    "city": "Kolkata",
+    "followers": 108000,
+    "brand_ready": true
+   },
+   "unverified": []
+  },
+  {
+   "handle": "shahanasrecipes",
+   "note": "Recipes by Shahana: Kerala recipes, Malayalam + English titles; no brand work captured.",
+   "strata": {
+    "band": "50K-100K",
+    "niche": "food (Malayalam)",
+    "brand_ready": false
+   },
+   "expected": {
+    "category_fit.top": "food",
+    "voice.languages": {
+     "any_of": [
+      [
+       "Malayalam"
+      ],
+      [
+       "Malayalam",
+       "English"
+      ]
+     ]
+    },
+    "brands.worked_with": []
+   },
+   "labels": {
+    "india": true,
+    "account": "human creator",
+    "city": "Kerala (state; city not stated)",
+    "followers": 67000,
+    "brand_ready": false
+   },
+   "unverified": []
+  },
+  {
+   "handle": "divine.makeovers",
+   "note": "Delhi makeup/skincare UGC creator (display name captured as 'Instagram' - capture bug); #ad Engage, ColorFlix, Earth Rhythm; #Collab Fiama; Lotus, SUGAR tags.",
+   "strata": {
+    "band": "1K-10K (nano)",
+    "niche": "beauty",
+    "brand_ready": true
+   },
+   "expected": {
+    "category_fit.top": {
+     "any_of": [
+      "beauty",
+      "skincare"
+     ]
+    },
+    "voice.languages": {
+     "any_of": [
+      [
+       "English"
+      ],
+      [
+       "English",
+       "Hindi"
+      ],
+      [
+       "Hinglish"
+      ]
+     ]
+    },
+    "brands.worked_with": [
+     "Engage",
+     "ColorFlix",
+     "Earth Rhythm",
+     "Fiama",
+     "Lotus",
+     "SUGAR"
+    ]
+   },
+   "labels": {
+    "india": true,
+    "account": "human creator",
+    "city": "Delhi",
+    "followers": 3484,
+    "brand_ready": true
+   },
+   "unverified": []
+  },
+  {
+   "handle": "milkandcardamom",
+   "note": "Hetal Vasavada, cookbook author, MasterChef US; bio '📍 SF Bay'; US brand deals (Taco Bell, Daawat US, Laxmi, Plugrá, King Arthur). Indian-American, NOT India-based.",
+   "strata": {
+    "band": "100K+",
+    "niche": "baking",
+    "brand_ready": true,
+    "trap": "diaspora: kept with India=yes"
+   },
+   "expected": {
+    "category_fit.top": {
+     "any_of": [
+      "baking",
+      "food"
+     ]
+    },
+    "voice.languages": [
+     "English"
+    ],
+    "brands.worked_with": [
+     "Taco Bell",
+     "Daawat",
+     "Laxmi",
+     "Plugra",
+     "King Arthur"
+    ]
+   },
+   "labels": {
+    "india": false,
+    "account": "human creator",
+    "city": "San Francisco Bay Area (USA)",
+    "followers": 138000,
+    "brand_ready": true
+   },
+   "unverified": []
+  },
+  {
+   "handle": "chennaivlogger",
+   "note": "Deepan Chakkravarthi, Chennai travel creator; paid ChatGPT (Tamil voice); many hotel/stay promos with enquiry numbers, no #ad.",
+   "strata": {
+    "band": "100K+",
+    "niche": "travel",
+    "brand_ready": true
+   },
+   "expected": {
+    "category_fit.top": "travel",
+    "voice.languages": {
+     "any_of": [
+      [
+       "English"
+      ],
+      [
+       "English",
+       "Tamil"
+      ],
+      [
+       "Tamil",
+       "English"
+      ]
+     ]
+    },
+    "brands.worked_with": [
+     "ChatGPT",
+     "Scoot",
+     "Yotel",
+     "SaffronStays",
+     "The Tourist 360",
+     "Courtyard by Marriott"
+    ]
+   },
+   "labels": {
+    "india": true,
+    "account": "human creator",
+    "city": "Chennai",
+    "followers": 118000,
+    "brand_ready": true
+   },
+   "unverified": []
+  },
+  {
+   "handle": "kotha_chobi_golpo",
+   "note": "Kathakali Biswas, Bengali folk artist (Jamini Roy / Kalighat style), takes custom orders and runs workshops; Bengali captions.",
+   "strata": {
+    "band": "10K-50K",
+    "niche": "art",
+    "brand_ready": false
+   },
+   "expected": {
+    "category_fit.top": {
+     "any_of": [
+      "art & design",
+      "diy & crafts"
+     ]
+    },
+    "voice.languages": {
+     "any_of": [
+      [
+       "Bengali"
+      ],
+      [
+       "Bengali",
+       "English"
+      ]
+     ]
+    },
+    "brands.worked_with": []
+   },
+   "labels": {
+    "india": true,
+    "account": "human creator (artist who also sells custom work)",
+    "city": "Kolkata",
+    "followers": 30000,
+    "brand_ready": false
+   },
+   "unverified": []
+  },
+  {
+   "handle": "hyderabadlegalhouse",
+   "note": "Hyderabad Legal House: a law practice page (High Court advocate, 'Legal Consultant', website, 1 following); Telugu + English legal explainers.",
+   "strata": {
+    "band": "1K-10K",
+    "niche": "law",
+    "brand_ready": false,
+    "trap": "business labelled creator"
+   },
+   "expected": {
+    "category_fit.top": "law & public affairs",
+    "voice.languages": {
+     "any_of": [
+      [
+       "Telugu"
+      ],
+      [
+       "Telugu",
+       "English"
+      ]
+     ]
+    },
+    "brands.worked_with": []
+   },
+   "labels": {
+    "india": true,
+    "account": "small business (law practice), not a creator",
+    "city": "Hyderabad",
+    "followers": 8024,
+    "brand_ready": false
+   },
+   "unverified": []
+  }
+ ]
+}

@@ -1,0 +1,1511 @@
+{
+ "version": 1,
+ "built": "2026-10-06",
+ "built_by": "data-quality agent",
+ "how_to_read": "'expected' is scored by analysis/evals.py. Fields that cannot be checked from the evidence we hold are left out of 'expected' and listed in 'unverified' (the scorer never sees them). 'reference' holds hand-read hook/on-screen text for human or judge review; evals.py does not score free text. Rows with source=caption+metadata will score once media.reel + analyze.reel have run for them; re-verify audio/format fields then from frames + transcript.",
+ "items": [
+  {
+   "shortcode": "Dd_AFsYydDi",
+   "creator": "mummastessa",
+   "note": "Empty plot with house plan -> finished house reveal, licensed track 'The War Cry', no speech (whisper speech_detected=0).",
+   "strata": {
+    "speech": "music/no-speech",
+    "sponsored": "no",
+    "niche": "home & decor"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "before_after",
+      "transition_outfit",
+      "montage_aesthetic"
+     ]
+    },
+    "topic.niche": {
+     "any_of": [
+      "home & decor",
+      "lifestyle & vlogs"
+     ]
+    },
+    "audio.kind": "music_only",
+    "audio.spoken_languages": [],
+    "sponsorship.disclosed": false,
+    "production.quality": 2
+   },
+   "unverified": [
+    "sponsorship.detected (usertag _kanavugal may be the builder; can't tell)",
+    "face_to_camera.value (man looks down at plan, not addressing camera)",
+    "products_brands (GUESS t-shirt incidental)"
+   ],
+   "reference": {
+    "hook": "Man in plot holds printed elevation of the house (H0-H1); text 'The Only Transition I Needed' (H2-H3) then finished house",
+    "on_screen_text": [
+     "The Only Transition I Needed"
+    ],
+    "city_cue": "Chennai (meta:location)"
+   }
+  },
+  {
+   "shortcode": "DauqB3Qi8ka",
+   "creator": "manas_rekhi",
+   "note": "Outfit showcase on hanger then worn; speaks English to camera; tags @flipkartfashionofficial, names Souled Store + Snitch; no paid label/#ad -> undisclosed promo.",
+   "strata": {
+    "speech": "English (caption Hinglish)",
+    "sponsored": "undisclosed promo",
+    "niche": "fashion"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "haul_or_outfit_showcase",
+      "transition_outfit",
+      "product_demo"
+     ]
+    },
+    "topic.niche": "fashion",
+    "audio.kind": {
+     "any_of": [
+      "speech",
+      "voiceover",
+      "speech_over_music"
+     ]
+    },
+    "audio.spoken_languages": [
+     "English"
+    ],
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": true,
+    "face_to_camera.value": true,
+    "production.quality": 4,
+    "products_brands": [
+     "Flipkart",
+     "Souled Store",
+     "Snitch"
+    ]
+   },
+   "unverified": [],
+   "reference": {
+    "hook": "Holds hoodie + jeans on hanger and talks to camera: 'I found this casual outfit from Flipkart fashion' (T0-3)",
+    "on_screen_text": [
+     "I FOUND THIS CASUAL OUTFIT FROM",
+     "FASHION",
+     "SOULED STORE KEEPS THINGS COOL",
+     "PAIRED WITH THESE",
+     "SNITCH, COMPLETE THAT LAID-BACK"
+    ]
+   }
+  },
+  {
+   "shortcode": "DdVsy2Isvzk",
+   "creator": "your.legal.sakhi",
+   "note": "Lawyer in blazer with lav mic explains property registry vs transfer in Hindi with English legal terms; numbered document list overlays.",
+   "strata": {
+    "speech": "Hindi/Hinglish",
+    "sponsored": "no",
+    "niche": "law & public affairs"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "talking_head",
+      "listicle_tips",
+      "tutorial"
+     ]
+    },
+    "topic.niche": "law & public affairs",
+    "audio.kind": "speech",
+    "audio.spoken_languages": {
+     "any_of": [
+      [
+       "Hindi"
+      ],
+      [
+       "Hinglish"
+      ],
+      [
+       "Hindi",
+       "English"
+      ]
+     ]
+    },
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "face_to_camera.value": true,
+    "production.quality": 3,
+    "products_brands": []
+   },
+   "unverified": [],
+   "reference": {
+    "hook": "Talks straight to camera holding a mic: registry alone doesn't make the property yours (T0-5, Devanagari subtitles)",
+    "on_screen_text": [
+     "1. Agreement to sell",
+     "2. Chain of Titles",
+     "3. All applicable NOCs",
+     "4. Payment Receipt"
+    ]
+   }
+  },
+  {
+   "shortcode": "Db-wrgjP7tW",
+   "creator": "shvtas",
+   "note": "Paid partnership with be.clinical (meta label + coauthor); English VO/talking head; Be Clinical Neck Repair Night Cream shown and applied.",
+   "strata": {
+    "speech": "English",
+    "sponsored": "paid partnership",
+    "niche": "skincare"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "product_demo",
+      "review",
+      "talking_head"
+     ]
+    },
+    "topic.niche": "skincare",
+    "audio.kind": {
+     "any_of": [
+      "speech",
+      "voiceover"
+     ]
+    },
+    "audio.spoken_languages": [
+     "English"
+    ],
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "sponsorship.brand": {
+     "any_of": [
+      "Be Clinical",
+      "BeClinical",
+      "be.clinical"
+     ]
+    },
+    "face_to_camera.value": true,
+    "production.quality": 5,
+    "products_brands": [
+     "Be Clinical"
+    ]
+   },
+   "unverified": [],
+   "reference": {
+    "hook": "Reading a book on the sofa, text 'Double chin ?' / 'Sagging neck?' (H1-H2)",
+    "on_screen_text": [
+     "Double chin ?",
+     "Sagging neck?",
+     "Be Clinical Neck Repair Night Cream",
+     "0.1% Pure Retinol",
+     "5% Glaucine Complex"
+    ]
+   }
+  },
+  {
+   "shortcode": "Dd1QLnXPcuN",
+   "creator": "shvtas",
+   "note": "Meme-format skincare-ritual montage: 'You're so naturally beautiful' then '\"Naturally\"' over LED mask, serum, sheet mask; ProTouch LED mask visible; not paid.",
+   "strata": {
+    "speech": "trending sound (unclear)",
+    "sponsored": "no",
+    "niche": "skincare"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "montage_aesthetic",
+      "listicle_tips",
+      "skit_comedy"
+     ]
+    },
+    "topic.niche": {
+     "any_of": [
+      "skincare",
+      "beauty"
+     ]
+    },
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "face_to_camera.value": true,
+    "production.quality": 3,
+    "products_brands": [
+     "ProTouch"
+    ]
+   },
+   "unverified": [
+    "audio.kind / audio.spoken_languages (12.6 s single segment 'I like it.' is probably a trending sound, can't confirm from frames)"
+   ],
+   "reference": {
+    "hook": "Messy hair close-up, text 'You're so naturally beautiful' (H0-H1), cut to LED mask with '\"Naturally\"'",
+    "on_screen_text": [
+     "You're so naturally beautiful",
+     "\"Naturally\""
+    ]
+   }
+  },
+  {
+   "shortcode": "DdrN-J5PjLE",
+   "creator": "shvtas",
+   "note": "Mirror selfie (phone hides face), static text hook 'The WORST foods to eat when you want to LOSE BELLY FAT' + 'Read Caption'; audio is song lyrics -> no creator speech.",
+   "strata": {
+    "speech": "music/no-speech (lyrics transcribed)",
+    "sponsored": "no",
+    "niche": "nutrition & health"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "listicle_tips",
+      "montage_aesthetic",
+      "other"
+     ]
+    },
+    "topic.niche": {
+     "any_of": [
+      "nutrition & health",
+      "fitness"
+     ]
+    },
+    "audio.kind": "music_only",
+    "audio.spoken_languages": [],
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "face_to_camera.value": false,
+    "production.quality": 2
+   },
+   "unverified": [
+    "products_brands ('the female formula' watermark is her series, a model may list it)"
+   ],
+   "reference": {
+    "hook": "Text 'The WORST foods to eat when you want to LOSE BELLY FAT' over mirror selfie (H1-H3)",
+    "on_screen_text": [
+     "The WORST foods to eat when you want to LOSE BELLY FAT",
+     "Read Caption"
+    ]
+   }
+  },
+  {
+   "shortcode": "Ddlm7k0SCqi",
+   "creator": "shvtas",
+   "note": "Same series: mirror selfie, text '7 CARBS I AVOID to actually get a FLAT STOMACH'; whisper transcribed pop-song lyrics, not her voice.",
+   "strata": {
+    "speech": "music/no-speech (lyrics transcribed)",
+    "sponsored": "no",
+    "niche": "nutrition & health"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "listicle_tips",
+      "montage_aesthetic",
+      "other"
+     ]
+    },
+    "topic.niche": {
+     "any_of": [
+      "nutrition & health",
+      "fitness"
+     ]
+    },
+    "audio.kind": "music_only",
+    "audio.spoken_languages": [],
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "face_to_camera.value": false,
+    "production.quality": 2
+   },
+   "unverified": [
+    "products_brands"
+   ],
+   "reference": {
+    "hook": "Text '7 CARBS I AVOID to actually get a FLAT STOMACH' over mirror selfie (H1-H3)",
+    "on_screen_text": [
+     "7 CARBS I AVOID to actually get a FLAT STOMACH",
+     "Read Caption"
+    ]
+   }
+  },
+  {
+   "shortcode": "DdorfXdzQzi",
+   "creator": "shvtas",
+   "note": "Podcast clip (landscape, two mics): rapid-fire with Vasudha Rai; English; mentions Himalaya Neem face wash, Nivea, La Mer as opinions, not promotion; collab coauthor only.",
+   "strata": {
+    "speech": "English",
+    "sponsored": "no (collab post with guest)",
+    "niche": "skincare"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "interview_street",
+      "talking_head",
+      "other"
+     ]
+    },
+    "topic.niche": {
+     "any_of": [
+      "skincare",
+      "beauty"
+     ]
+    },
+    "audio.kind": "speech",
+    "audio.spoken_languages": [
+     "English"
+    ],
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "production.quality": 4,
+    "products_brands": [
+     "Himalaya",
+     "Nivea",
+     "La Mer"
+    ]
+   },
+   "unverified": [
+    "face_to_camera.value (two people talk to each other, not to camera)"
+   ],
+   "reference": {
+    "hook": "Two women on podcast set, title 'Rapid fire with Vasudha Rai' (H0-H3); spoken 'Rapid fire with Vasudha Rai, OG of beauty'",
+    "on_screen_text": [
+     "Rapid fire with Vasudha Rai"
+    ]
+   }
+  },
+  {
+   "shortcode": "Da4lvmOPEd9",
+   "creator": "shvtas",
+   "note": "Paid partnership (meta label, coauthor myrevitalh): working-mom stress -> Revital Women capsules; English talking head + molecule graphics.",
+   "strata": {
+    "speech": "English",
+    "sponsored": "paid partnership",
+    "niche": "nutrition & health"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "product_demo",
+      "talking_head",
+      "review"
+     ]
+    },
+    "topic.niche": {
+     "any_of": [
+      "nutrition & health",
+      "yoga & wellness",
+      "fitness"
+     ]
+    },
+    "audio.kind": {
+     "any_of": [
+      "speech",
+      "voiceover",
+      "speech_over_music"
+     ]
+    },
+    "audio.spoken_languages": [
+     "English"
+    ],
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "sponsorship.brand": {
+     "any_of": [
+      "Revital",
+      "Revital Women",
+      "Revital H"
+     ]
+    },
+    "face_to_camera.value": true,
+    "production.quality": 5,
+    "products_brands": [
+     "Revital"
+    ]
+   },
+   "unverified": [],
+   "reference": {
+    "hook": "At laptop asking 'Is constant stress supposed to be the new normal for the working moms?' with kinetic text 'Is Constant Stress' (T0-3, H1)",
+    "on_screen_text": [
+     "Is Constant Stress",
+     "High Cortisol And",
+     "Iron,",
+     "Magnesium",
+     "Support Energy"
+    ]
+   }
+  },
+  {
+   "shortcode": "DV_LYPoD8tK",
+   "creator": "shvtas",
+   "note": "Paid partnership (meta label, coauthor daburchyawanprashindia): mom + son, Dabur Chyawanshakti Gummies pack shots; English; spoken 'available on Dabur Shop and Blinkit'.",
+   "strata": {
+    "speech": "English",
+    "sponsored": "paid partnership",
+    "niche": "parenting"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "product_demo",
+      "talking_head"
+     ]
+    },
+    "topic.niche": {
+     "any_of": [
+      "parenting",
+      "nutrition & health"
+     ]
+    },
+    "audio.kind": {
+     "any_of": [
+      "speech",
+      "voiceover",
+      "speech_over_music"
+     ]
+    },
+    "audio.spoken_languages": {
+     "any_of": [
+      [
+       "English"
+      ],
+      [
+       "English",
+       "Hindi"
+      ],
+      [
+       "Hinglish"
+      ]
+     ]
+    },
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "sponsorship.brand": {
+     "any_of": [
+      "Dabur",
+      "Dabur Chyawanshakti",
+      "Dabur Chyawanshakti Gummies"
+     ]
+    },
+    "face_to_camera.value": true,
+    "production.quality": 5,
+    "products_brands": [
+     "Dabur Chyawanshakti",
+     "Blinkit"
+    ]
+   },
+   "unverified": [],
+   "reference": {
+    "hook": "Mom hands son a coconut on the sofa, then glowing talk to camera (H0-H3): 'As a mom, Shivain's health and immunity is always my top priority'",
+    "on_screen_text": [
+     "ENERGY",
+     "disclaimer: Creative Visualisation..."
+    ]
+   }
+  },
+  {
+   "shortcode": "DMF_nvxSour",
+   "creator": "shvtas",
+   "note": "Paid partnership with withpronto (label + coauthor + sponsor tag): help cancels -> Pronto app books house help in 10 min; English; Gurgaon.",
+   "strata": {
+    "speech": "English",
+    "sponsored": "paid partnership",
+    "niche": "parenting"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "talking_head",
+      "product_demo",
+      "storytime"
+     ]
+    },
+    "topic.niche": {
+     "any_of": [
+      "parenting",
+      "lifestyle & vlogs",
+      "home & decor"
+     ]
+    },
+    "audio.kind": {
+     "any_of": [
+      "speech",
+      "voiceover"
+     ]
+    },
+    "audio.spoken_languages": [
+     "English"
+    ],
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "sponsorship.brand": {
+     "any_of": [
+      "Pronto",
+      "withpronto"
+     ]
+    },
+    "face_to_camera.value": true,
+    "production.quality": 4,
+    "products_brands": [
+     "Pronto"
+    ]
+   },
+   "unverified": [],
+   "reference": {
+    "hook": "On sofa talking to camera 'This has happened with me so many times' with word-by-word captions (H0-H3)",
+    "on_screen_text": [
+     "Pronto",
+     "Call via SIM1 from Sarita Didi"
+    ],
+    "city_cue": "Gurgaon/Gurugram (caption + meta:location)"
+   }
+  },
+  {
+   "shortcode": "DGvgqgfylWY",
+   "creator": "shvtas",
+   "note": "Paid partnership + #AD with cadburybournvita: factory visit, NutriCheck booth, sugar-per-serve graphic; mostly English with one Hindi line.",
+   "strata": {
+    "speech": "English (+1 Hindi line)",
+    "sponsored": "paid partnership + #AD",
+    "niche": "parenting"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "product_demo",
+      "vlog",
+      "event_coverage",
+      "talking_head"
+     ]
+    },
+    "topic.niche": {
+     "any_of": [
+      "parenting",
+      "nutrition & health",
+      "food"
+     ]
+    },
+    "audio.kind": {
+     "any_of": [
+      "speech",
+      "voiceover",
+      "speech_over_music"
+     ]
+    },
+    "audio.spoken_languages": {
+     "any_of": [
+      [
+       "English"
+      ],
+      [
+       "English",
+       "Hindi"
+      ],
+      [
+       "Hinglish"
+      ],
+      [
+       "English",
+       "Hinglish"
+      ]
+     ]
+    },
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "sponsorship.brand": {
+     "any_of": [
+      "Bournvita",
+      "Cadbury Bournvita"
+     ]
+    },
+    "production.quality": 5,
+    "products_brands": [
+     "Bournvita"
+    ]
+   },
+   "unverified": [
+    "face_to_camera.value (mostly B-roll + voiceover with kid/factory; she is on screen but rarely addresses camera - judgement call)"
+   ],
+   "reference": {
+    "hook": "Child laughing with orange Bournvita mug (H0), comment card 'Can nutrition and taste really go hand in hand?' (H1), 'Here's one thing you should know..' (H2-H3)",
+    "on_screen_text": [
+     "Can nutrition and taste really go hand in hand?",
+     "Here's one thing you should know..",
+     "Essential strength nutrients",
+     "42.5 gms WHO daily recommended intake",
+     "6.5 gms 1 serve of bournvita"
+    ]
+   }
+  },
+  {
+   "shortcode": "DHvru_XSwL0",
+   "creator": "shvtas",
+   "note": "VI-JOHN Prakritik tomato range demo (coauthor prakritiknaturals, '#shvtas X #ViJohn'); no paid label or #ad; English speech; face wash/serum applied.",
+   "strata": {
+    "speech": "English",
+    "sponsored": "brand collab (no #ad)",
+    "niche": "skincare"
+   },
+   "source": "frames H0-H3/K1-K8 + whisper transcript + reel_media metadata + caption (hand-checked)",
+   "expected": {
+    "format.primary": {
+     "any_of": [
+      "product_demo",
+      "review",
+      "tutorial"
+     ]
+    },
+    "topic.niche": "skincare",
+    "audio.kind": {
+     "any_of": [
+      "speech",
+      "voiceover",
+      "speech_over_music"
+     ]
+    },
+    "audio.spoken_languages": [
+     "English"
+    ],
+    "sponsorship.detected": true,
+    "face_to_camera.value": true,
+    "production.quality": 4,
+    "products_brands": [
+     "Prakritik",
+     "Vi-John"
+    ]
+   },
+   "unverified": [
+    "sponsorship.disclosed (only '#shvtas X #ViJohn' + brand coauthor; not a clear #ad/#collab, judgement call)"
+   ],
+   "reference": {
+    "hook": "Scooping tomato pulp, text 'If you can't eat it, you shouldn't apply !' (H1-H2), 'That's Ayurveda 101' (H3)",
+    "on_screen_text": [
+     "If you can't eat it, you shouldn't apply !",
+     "That's Ayurveda 101",
+     "Tomato Skin Brightening Face Wash is gentle,",
+     "No more messy DIYs"
+    ]
+   }
+  },
+  {
+   "shortcode": "CyGKTn4P5u2",
+   "creator": "thefizzlinggourmets",
+   "note": "Paid label + '#AD'; caption promotes @cornettoindia Salted Caramel.",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "paid + #AD",
+    "niche": "food"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "topic.niche": {
+     "any_of": [
+      "food",
+      "baking"
+     ]
+    },
+    "products_brands": [
+     "Cornetto"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DdT0lzRtk_d",
+   "creator": "hyangla_bibi",
+   "note": "Bengali-English caption, '#Ad' for Ganesh Spices chicken roast recipe (no IG paid label).",
+   "strata": {
+    "caption_lang": "Bengali",
+    "sponsored": "#Ad",
+    "niche": "food"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "topic.niche": "food",
+    "products_brands": [
+     "Ganesh"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "Dd1o6bKRfAx",
+   "creator": "delhitravelblogger",
+   "note": "Paid label + '#Collab with @airspacetravel.in'; Hinglish caption on Boulevard Munnar stay.",
+   "strata": {
+    "caption_lang": "Hinglish",
+    "sponsored": "paid + #Collab",
+    "niche": "travel"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "topic.niche": "travel"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text",
+    "products_brands (name variants: 'Airspace Travel' vs handle; hotel 'Boulevard')"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "Dcl1MqnT_fN",
+   "creator": "me_nishabhardwaj",
+   "note": "Paid label; Hinglish caption on Clayco acne cleanser, 'Comment CLAYCO for link'.",
+   "strata": {
+    "caption_lang": "Hinglish",
+    "sponsored": "paid",
+    "niche": "skincare"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "topic.niche": "skincare",
+    "products_brands": [
+     "Clayco"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DcTQu48Sfp9",
+   "creator": "chennaivlogger",
+   "note": "Paid label; planning a Vietnam trip by talking to ChatGPT in Tamil (caption says so; speech language unverified until transcribed).",
+   "strata": {
+    "caption_lang": "English (speech claimed Tamil)",
+    "sponsored": "paid",
+    "niche": "travel/tech"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "topic.niche": {
+     "any_of": [
+      "travel",
+      "tech"
+     ]
+    },
+    "products_brands": [
+     "ChatGPT"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "Dd8kMHStNDX",
+   "creator": "pjexplained",
+   "note": "Paid label + code WXMTHEPJ50 for WXM pro-wrestling shows at DU stadium; Hinglish caption.",
+   "strata": {
+    "caption_lang": "Hinglish",
+    "sponsored": "paid + code",
+    "niche": "sports"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "topic.niche": {
+     "any_of": [
+      "sports",
+      "comedy",
+      "film & acting"
+     ]
+    },
+    "products_brands": [
+     "WXM"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DXg26QDEs9b",
+   "creator": "__allaboutlifestyle_merapitara",
+   "note": "Paid label + '#Ad' for Harpic Bathroom Ultra cleaner; bathroom makeover.",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "paid + #Ad",
+    "niche": "home & decor"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "topic.niche": "home & decor",
+    "products_brands": [
+     "Harpic"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "Dcxi-wZpyd6",
+   "creator": "atreyeegiri",
+   "note": "Paid label + '#ad' for Star Health insurance (travel creator, finance topic).",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "paid + #ad",
+    "niche": "finance"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "topic.niche": {
+     "any_of": [
+      "finance",
+      "nutrition & health"
+     ]
+    },
+    "products_brands": [
+     "Star Health"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DdbMaUuTccy",
+   "creator": "ishuka.a",
+   "note": "Paid label + '#ad #collab' for Astaberry papaya hair-removal cream.",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "paid + #ad",
+    "niche": "beauty"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "topic.niche": {
+     "any_of": [
+      "beauty",
+      "skincare"
+     ]
+    },
+    "products_brands": [
+     "Astaberry"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DWD9jMOkkw7",
+   "creator": "__allaboutlifestyle_merapitara",
+   "note": "No label/#ad but 'I got this ... from @woodenstreet' + 'Comment for link' -> undisclosed promo.",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "undisclosed promo",
+    "niche": "home & decor"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": true,
+    "topic.niche": "home & decor",
+    "products_brands": [
+     "WoodenStreet"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DcV6gqQzXEd",
+   "creator": "delhites_food_blogger",
+   "note": "Food blogger pitches Boltt Ace 5G phone launch on Flipkart; no label/#ad -> undisclosed promo, tech topic.",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "undisclosed promo",
+    "niche": "tech"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": true,
+    "topic.niche": "tech",
+    "products_brands": [
+     "Boltt"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "Dbrgo_BpCCy",
+   "creator": "indian_street_food_reels",
+   "note": "'#Collaboration' for Samsung Galaxy Z Fold8 / Smart Switch (no IG label) on a street-food page.",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "#Collaboration",
+    "niche": "tech"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": true,
+    "sponsorship.detected": true,
+    "topic.niche": "tech",
+    "products_brands": [
+     "Samsung"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "Dds-Gn4pfCW",
+   "creator": "_my_cookpad",
+   "note": "Linen tissue saree 'from the Instagram page Thabu and Pathu', 'check out their page' -> undisclosed promo; Kochi.",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "undisclosed promo",
+    "niche": "ethnic wear"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": true,
+    "topic.niche": {
+     "any_of": [
+      "ethnic wear",
+      "fashion"
+     ]
+    },
+    "products_brands": [
+     "Thabu and Pathu"
+    ]
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DcYf-Jdpjh8",
+   "creator": "shahanasrecipes",
+   "note": "Malayalam caption: Onam sadya Ada Pradhaman recipe; no brand.",
+   "strata": {
+    "caption_lang": "Malayalam",
+    "sponsored": "no",
+    "niche": "food"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "topic.niche": "food"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text",
+    "sponsorship.detected (ingredient brands may be visible)"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "Dd8fq-AgX7m",
+   "creator": "roseapplekitchen",
+   "note": "Malayalam caption: rava snack recipe (#ravavada, #keralafood); no brand.",
+   "strata": {
+    "caption_lang": "Malayalam",
+    "sponsored": "no",
+    "niche": "food"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "topic.niche": "food"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text",
+    "sponsorship.detected"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "Dd-kn0spllu",
+   "creator": "hyderabadlegalhouse",
+   "note": "Telugu caption: what to do when police won't register an FIR (BNSS 175(3)); legal awareness.",
+   "strata": {
+    "caption_lang": "Telugu",
+    "sponsored": "no",
+    "niche": "law & public affairs"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "topic.niche": "law & public affairs"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DUK_iT4AeM3",
+   "creator": "skintalesbyabi2.0",
+   "note": "Tamil/Tanglish caption: tinted sunscreen leaves brown skin ashy; shade-range complaint, no brand named.",
+   "strata": {
+    "caption_lang": "Tamil (Tanglish)",
+    "sponsored": "no",
+    "niche": "beauty"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "topic.niche": {
+     "any_of": [
+      "skincare",
+      "beauty"
+     ]
+    }
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DdJIhFUPGtT",
+   "creator": "kotha_chobi_golpo",
+   "note": "Bengali caption: Jamini Roy-style folk painting on a clay sara (#bengalifolkart, #handmade).",
+   "strata": {
+    "caption_lang": "Bengali",
+    "sponsored": "no",
+    "niche": "art & design"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "topic.niche": {
+     "any_of": [
+      "art & design",
+      "diy & crafts"
+     ]
+    }
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "Dbx6KKPNgg5",
+   "creator": "snehal_makes_magic",
+   "note": "Marathi caption: paneer pulao recipe with ingredient list (साहित्य).",
+   "strata": {
+    "caption_lang": "Marathi",
+    "sponsored": "no",
+    "niche": "food"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "topic.niche": "food"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text",
+    "sponsorship.detected"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DcWO7IDJFRg",
+   "creator": "indian_lawyer1",
+   "note": "Hindi (Devanagari) caption: BNS section 103 punishment for murder.",
+   "strata": {
+    "caption_lang": "Hindi",
+    "sponsored": "no",
+    "niche": "law & public affairs"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "topic.niche": "law & public affairs"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DdglrkahuWu",
+   "creator": "dieticiannikitaagarwal",
+   "note": "Hinglish caption: detox water myth-busting by a dietician.",
+   "strata": {
+    "caption_lang": "Hinglish",
+    "sponsored": "no",
+    "niche": "nutrition & health"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "topic.niche": "nutrition & health"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "Dd22o5kR91x",
+   "creator": "delhitravelblogger",
+   "note": "Hinglish caption: Alleppey/Kuttanad backwater houses with jetties instead of parking; no brand.",
+   "strata": {
+    "caption_lang": "Hinglish",
+    "sponsored": "no",
+    "niche": "travel"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "topic.niche": "travel"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "Dax0RlDRqpI",
+   "creator": "foodfamgujarati",
+   "note": "Hinglish caption: street-style chhole kulche recipe with ingredients.",
+   "strata": {
+    "caption_lang": "Hinglish",
+    "sponsored": "no",
+    "niche": "food"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "topic.niche": "food"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text",
+    "sponsorship.detected"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DcoZLRuSRHI",
+   "creator": "riteshsingh.live",
+   "note": "Live singing cover of 'Gehra Hua'; music niche, no brand.",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "no",
+    "niche": "music",
+    "speech": "singing (likely no speech)"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "topic.niche": "music"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DWlhJzMD5a-",
+   "creator": "aashnabagri",
+   "note": "Heels dance rehearsal with @sanskritiskt; dance niche.",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "no",
+    "niche": "dance",
+    "speech": "likely music only"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "topic.niche": "dance"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DdtIwfVqhB-",
+   "creator": "yoga_with_oksana",
+   "note": "Standing elbow-to-knee core crunch demo by a yoga teacher (creator labelled 'education').",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "no",
+    "niche": "fitness"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "topic.niche": {
+     "any_of": [
+      "fitness",
+      "yoga & wellness"
+     ]
+    }
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DZsIBp5tMq5",
+   "creator": "all_of_finance_",
+   "note": "F&O turnover and tax-audit rules explainer; finance, no brand.",
+   "strata": {
+    "caption_lang": "English",
+    "sponsored": "no",
+    "niche": "finance"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "sponsorship.detected": false,
+    "topic.niche": "finance"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text"
+   ],
+   "reference": {}
+  },
+  {
+   "shortcode": "DaS6faRPS_o",
+   "creator": "indiainsiders",
+   "note": "Hindi (Devanagari) caption: Delhi rain, Pahadi Famous Cafe, coffee and momos.",
+   "strata": {
+    "caption_lang": "Hindi",
+    "sponsored": "no",
+    "niche": "food"
+   },
+   "source": "caption + content_snapshot/reel metadata only (no media yet)",
+   "expected": {
+    "sponsorship.disclosed": false,
+    "topic.niche": "food"
+   },
+   "unverified": [
+    "format.primary",
+    "audio.kind",
+    "audio.spoken_languages",
+    "face_to_camera.value",
+    "production.quality",
+    "hook",
+    "on_screen_text",
+    "sponsorship.detected (names a cafe; could be a place promo)"
+   ],
+   "reference": {}
+  }
+ ]
+}
