@@ -1,4 +1,6 @@
+import json
 import os
+import tempfile
 import unittest
 from unittest import mock
 
@@ -27,17 +29,28 @@ class ChatSearchRulesTest(unittest.TestCase):
         self.assertEqual(criteria["q"], "biryani")
 
     def test_llm_engine_used_when_configured_and_falls_back_on_failure(self):
-        good = mock.Mock(returncode=0, stdout='noise {"city": "Pune", "category": "food", "reply": "Pune food creators."} noise')
-        with mock.patch.dict(os.environ, {"MICROINDIA_LLM_CMD": "opencode run"}), mock.patch("subprocess.run", return_value=good):
-            answer = chat_search("food creators in pune")
-        self.assertEqual(answer["engine"], "llm")
-        self.assertEqual(answer["criteria"], {"city": "Pune", "category": "food"})
-        broken = mock.Mock(returncode=1, stdout="")
-        with mock.patch.dict(os.environ, {"MICROINDIA_LLM_CMD": "opencode run"}), mock.patch("subprocess.run", return_value=broken):
+        envelope = {"type": "result", "is_error": False, "subtype": "success", "result": "{}",
+                    "structured_output": {"city": "Pune", "category": "food", "reply": "Pune food creators."}}
+        good = mock.Mock(returncode=0, stdout=json.dumps(envelope), stderr="")
+        with tempfile.TemporaryDirectory() as directory:
+            env = {"MICROINDIA_LLM": "on", "MICROINDIA_CLAUDE_BIN": "/bin/echo",
+                   "MICROINDIA_DATABASE": os.path.join(directory, "llm.sqlite3")}
+            with mock.patch.dict(os.environ, env), mock.patch("microindia_scraper.llm._execute", return_value=good) as run:
+                answer = chat_search("food creators in pune")
+            self.assertEqual(answer["engine"], "llm")
+            self.assertEqual(answer["criteria"], {"city": "Pune", "category": "food"})
+            self.assertIn("--json-schema", run.call_args[0][0])
+            broken = mock.Mock(returncode=1, stdout="", stderr="boom")
+            with mock.patch.dict(os.environ, env), mock.patch("microindia_scraper.llm._execute", return_value=broken):
+                answer = chat_search("food creators in delhi")
+            self.assertEqual(answer["engine"], "rules")
+            self.assertEqual(answer["criteria"]["city"], "Delhi")
+
+    def test_llm_is_off_unless_switched_on(self):
+        with mock.patch.dict(os.environ, {"MICROINDIA_LLM": "", "MICROINDIA_LLM_CMD": ""}), mock.patch("microindia_scraper.llm._execute") as run:
             answer = chat_search("food creators in pune")
         self.assertEqual(answer["engine"], "rules")
-        self.assertEqual(answer["criteria"]["city"], "Pune")
-
+        run.assert_not_called()
 
 if __name__ == "__main__":
     unittest.main()

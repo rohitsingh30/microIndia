@@ -6,8 +6,7 @@ Each message:
    hard facts the brief states ("under 50K", "in Pune");
 2. answer: an LLM reads the brief, the conversation and compact dossiers of the
    top candidates, then recommends creators with a reason each and answers the
-   question. Configured with MICROINDIA_LLM_CMD (e.g. an `opencode run ...`
-   command reading the prompt on stdin and printing JSON).
+   question. Claude (Opus) through ``llm.py``, switched on with MICROINDIA_LLM=on.
 Without an LLM it returns the retrieval ranking and says the AI is not connected.
 """
 
@@ -15,10 +14,7 @@ from __future__ import annotations
 
 import json
 import math
-import os
 import re
-import shlex
-import subprocess
 from collections import Counter
 from typing import Any, Dict, List, Optional
 
@@ -116,24 +112,30 @@ def dossier(creator: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _llm(prompt: str) -> Optional[Dict[str, Any]]:
-    command = os.environ.get("MICROINDIA_LLM_CMD", "").strip()
-    if not command:
+ANSWER_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "answer": {"type": "string"},
+        "picks": {"type": "array", "items": {"type": "object", "properties": {
+            "handle": {"type": "string"}, "why": {"type": "string"}}, "required": ["handle", "why"]}},
+        "follow_ups": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["answer", "picks", "follow_ups"],
+}
+
+
+def _llm(prompt: str, database: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    from . import llm
+
+    if not llm.brand_ai_enabled():
         return None
     try:
-        # "{prompt}" in the command passes the prompt as an argument (opencode run); otherwise stdin.
-        argv = [part.replace("{prompt}", prompt) for part in shlex.split(command)]
-        completed = subprocess.run(argv, input=None if "{prompt}" in command else prompt, capture_output=True, text=True,
-                                   timeout=float(os.environ.get("MICROINDIA_LLM_TIMEOUT", "90")))
-    except (OSError, subprocess.TimeoutExpired):
+        reply, _ = llm.call(prompt, schema=ANSWER_SCHEMA, system=SYSTEM, model="opus", purpose="assistant.answer",
+                            database=database, timeout=180,
+                            retries=0, slot_wait=5)  # a brand request never queues behind the analyzer
+    except llm.LLMError:
         return None
-    match = re.search(r"\{.*\}", completed.stdout, re.S)
-    if completed.returncode != 0 or not match:
-        return None
-    try:
-        return json.loads(match.group(0))
-    except json.JSONDecodeError:
-        return None
+    return reply if isinstance(reply, dict) else None
 
 
 def answer(repo: Any, message: str, history: List[Dict[str, str]], filters: Dict[str, str]) -> Dict[str, Any]:
@@ -141,21 +143,12 @@ def answer(repo: Any, message: str, history: List[Dict[str, str]], filters: Dict
     candidates = ranked[:CANDIDATES]
     by_handle = {c["handle"]: c for c in candidates}
     prompt = (
-        f"{SYSTEM}\n\nCONVERSATION SO FAR:\n"
+        "CONVERSATION SO FAR:\n"
         + "\n".join(f"{t.get('role')}: {t.get('text')}" for t in history[-8:])
         + f"\n\nUSER: {message}\n\nCANDIDATES ({len(candidates)} of {len(ranked)} matching creators):\n"
         + "\n".join(json.dumps(dossier(c), ensure_ascii=False) for c in candidates)
     )
-    reply = _llm(prompt) if candidates else None
-    if candidates and os.environ.get("MICROINDIA_LLM_CMD"):
-        from .runtime.tasks import TaskStore
-
-        usage = TaskStore(repo.database)
-        try:
-            usage.count_usage("llm_calls")
-            usage.count_usage("llm_prompt_chars", len(prompt))
-        finally:
-            usage.close()
+    reply = _llm(prompt, getattr(repo, "database", None)) if candidates else None
     if reply and isinstance(reply.get("picks"), list):
         picks = [p for p in reply["picks"] if isinstance(p, dict) and p.get("handle") in by_handle][:8]
         engine, text, follow_ups = "llm", str(reply.get("answer") or ""), [str(f) for f in reply.get("follow_ups") or []][:3]

@@ -9,8 +9,68 @@ from statistics import median
 from typing import Any, Dict, Iterable, List, Optional
 
 
-FEATURE_VERSION = "features-v1"
-REEL_ANALYSIS_VERSION = "reel-analysis-v1"
+# v2: languages, topics, formats and CTAs come only from creator-authored text (the caption).
+# v1 read the whole page body, whose footer lists every UI language (हिन्दी, தமிழ், తెలుగు, മലയാളം...)
+# and whose comments/buttons ("Follow", "Reply", "Get the app") faked CTAs and topics.
+FEATURE_VERSION = "features-v2"
+REEL_ANALYSIS_VERSION = "reel-analysis-v2"
+
+# Script -> language code. Devanagari is reported as "hi" (Hindi, the dominant Devanagari language here).
+SCRIPT_LANGUAGES = (
+    ("hi", r"[\u0900-\u097f]"),
+    ("bn", r"[\u0980-\u09ff]"),
+    ("pa", r"[\u0a00-\u0a7f]"),
+    ("gu", r"[\u0a80-\u0aff]"),
+    ("ta", r"[\u0b80-\u0bff]"),
+    ("te", r"[\u0c00-\u0c7f]"),
+    ("kn", r"[\u0c80-\u0cff]"),
+    ("ml", r"[\u0d00-\u0d7f]"),
+    ("en", r"[A-Za-z]"),
+)
+
+# Instagram's footer: the language picker lists every UI language in its own script, after
+# links like "Meta / About / Blog". It is on every page body, so it must never count as a signal.
+INSTAGRAM_UI_LANGUAGES = frozenset("""
+English|Afrikaans|العربية|Čeština|Dansk|Deutsch|Ελληνικά|English (UK)|Español (España)|Español|فارسی|Suomi|Français|
+עברית|Bahasa Indonesia|Italiano|日本語|한국어|Bahasa Melayu|Norsk|Nederlands|Polski|Português (Brasil)|
+Português (Portugal)|Русский|Svenska|ภาษาไทย|Filipino|Türkçe|中文(简体)|中文(台灣)|বাংলা|ગુજરાતી|हिन्दी|Hrvatski|
+Magyar|ಕನ್ನಡ|മലയാളം|मराठी|नेपाली|ਪੰਜਾਬੀ|සිංහල|Slovenčina|தமிழ்|తెలుగు|اردو|Tiếng Việt|中文(香港)|Български|
+Français (Canada)|Română|Српски|Українська""".replace("\n", "").split("|"))
+_FOOTER_START = re.compile(r"^(?:More posts from .+|Meta)$")
+
+
+def strip_instagram_chrome(text: str) -> str:
+    """Drop Instagram's footer (links + language list) from page text."""
+    kept: List[str] = []
+    for line in str(text or "").splitlines():
+        stripped = line.strip()
+        if _FOOTER_START.match(stripped):
+            break  # everything after "More posts from …" / "Meta" is footer
+        if stripped in INSTAGRAM_UI_LANGUAGES:
+            continue
+        kept.append(line)
+    return "\n".join(kept)
+
+
+def language_signals(text: str) -> List[str]:
+    """Languages by script in creator-authored text. Never pass whole-page text: use the caption."""
+    cleaned = strip_instagram_chrome(text)
+    cleaned = re.sub(r"[#@][\w.]+", " ", cleaned)  # hashtags and handles say little about spoken language
+    cleaned = re.sub(r"https?://\S+", " ", cleaned)
+    return sorted({code for code, pattern in SCRIPT_LANGUAGES if re.search(pattern, cleaned)})
+
+
+def creator_text(post: Dict[str, Any]) -> str:
+    """The words the creator wrote for this post. ``text_content`` is the whole page body
+    (other people's comments, buttons, the footer) and is deliberately not used."""
+    return strip_instagram_chrome(str(post.get("caption_text") or "")).strip()
+
+
+def _term_count(lowered: str, term: str) -> int:
+    """Whole-word occurrences ("ai" must not match "said"/"chai", "run" not "brunch")."""
+    if not re.match(r"\w", term):  # emoji and punctuation terms
+        return lowered.count(term)
+    return len(re.findall(r"(?<![\w])" + re.escape(term) + r"(?![\w])", lowered))
 
 TOPIC_TERMS = {
     "food": ("food", "recipe", "cook", "cooking", "bake", "restaurant", "cafe", "meal"),
@@ -166,60 +226,50 @@ def derive_post_features(post: Dict[str, Any], follower_count: Optional[int] = N
     return result
 
 def analyze_reel(post: Dict[str, Any]) -> Dict[str, Any]:
-    """Derive transparent reel-level analysis from captured public text/metadata."""
-    caption = post.get("caption_text") or ""
+    """Transparent, rule-based reel signals from the creator's own caption.
+
+    Only creator-authored text counts: the page body (``text_content``) holds Instagram's
+    footer language list, buttons and other people's comments. Matching is whole-word.
+    """
+    caption = creator_text(post)
     text_content = post.get("text_content") or ""
-    combined = f"{caption} {text_content}".strip()
-    lowered = combined.lower()
+    lowered = caption.lower()
     topic_scores = {
-        topic: sum(lowered.count(term) for term in terms)
+        topic: sum(_term_count(lowered, term) for term in terms)
         for topic, terms in TOPIC_TERMS.items()
     }
     topic = max(topic_scores, key=topic_scores.get) if max(topic_scores.values(), default=0) else "other"
     format_scores = {
-        style: sum(lowered.count(term) for term in terms)
+        style: sum(_term_count(lowered, term) for term in terms)
         for style, terms in FORMAT_TERMS.items()
     }
     formats = [style for style, score in format_scores.items() if score > 0] or ["general_short_video"]
-    language_signals = []
-    if re.search(r"[\u0900-\u097f]", combined):
-        language_signals.append("hi-or-devanagari")
-    if re.search(r"[\u0b80-\u0bff]", combined):
-        language_signals.append("ta")
-    if re.search(r"[\u0c00-\u0c7f]", combined):
-        language_signals.append("te")
-    if re.search(r"[\u0d00-\u0d7f]", combined):
-        language_signals.append("ml")
-    if re.search(r"[A-Za-z]", combined):
-        language_signals.append("en-or-latin")
-    cta_matches = [term for term in CTA_TERMS if term in lowered]
-    commercial = bool(re.search(r"#(ad|sponsored|affiliate)\b|paid partnership|promo code|collab", lowered))
-    first_sentence = re.split(r"[.!?\n]", combined, maxsplit=1)[0].strip()
+    cta_matches = [term for term in CTA_TERMS if _term_count(lowered, term)]
+    commercial = bool(re.search(r"#(ad|sponsored|affiliate)\b|paid partnership|promo code|\bcollab", lowered))
+    first_sentence = re.split(r"[.!?\n]", caption, maxsplit=1)[0].strip()
     return {
         "analysis_version": REEL_ANALYSIS_VERSION,
         "topic": topic,
         "topic_scores": topic_scores,
         "format_signals": formats,
-        "language_signals": sorted(set(language_signals)),
+        "language_signals": language_signals(caption),
         "hook_text": first_sentence[:180] or None,
         "hook_length": len(first_sentence),
         "call_to_action": bool(cta_matches),
         "call_to_action_terms": cta_matches,
         "commercial": commercial,
-        "text_evidence_chars": len(combined),
-        "has_caption": bool(caption.strip()),
+        "text_evidence_chars": len(caption),
+        "has_caption": bool(caption),
         "has_extracted_text": bool(text_content.strip()),
-        "analysis_confidence": "medium" if len(combined) >= 40 else "low" if combined else "insufficient_text_evidence",
-        "evidence_status": "text_and_metadata" if combined else "metadata_only",
+        "analysis_confidence": "medium" if len(caption) >= 40 else "low" if caption else "insufficient_text_evidence",
+        "evidence_status": "caption" if caption else "metadata_only",
     }
 
 
 def derive_creator_features(profile: Dict[str, Any], content: Iterable[Dict[str, Any]], metrics: Dict[str, Any]) -> Dict[str, Any]:
     posts = list(content)
-    text_by_post = [
-        " ".join(value for value in (item.get("caption_text"), item.get("text_content")) if value)
-        for item in posts
-    ]
+    # Creator-authored text only (see creator_text): the page body would add the footer's language list.
+    text_by_post = [creator_text(item) for item in posts]
     corpus = " ".join(text_by_post).lower()
     hashtags = [
         tag.lower()
@@ -228,16 +278,10 @@ def derive_creator_features(profile: Dict[str, Any], content: Iterable[Dict[str,
     ]
     scores = category_scores(corpus + " " + " ".join(hashtags))
     primary_category = max(scores, key=scores.get) if scores and max(scores.values()) else "other"
-    languages = []
-    for name, pattern in (
-        ("hi", r"[\u0900-\u097f]"),
-        ("ta", r"[\u0b80-\u0bff]"),
-        ("te", r"[\u0c00-\u0c7f]"),
-        ("ml", r"[\u0d00-\u0d7f]"),
-        ("en", r"[A-Za-z]"),
-    ):
-        if re.search(pattern, corpus):
-            languages.append(name)
+    own_words = " ".join(
+        [str(profile.get(key) or "") for key in ("display_name", "bio_text")] + text_by_post
+    )
+    languages = language_signals(own_words)
     parsed_dates = []
     for item in posts:
         value = item.get("published_at")
@@ -314,7 +358,8 @@ def derive_creator_features(profile: Dict[str, Any], content: Iterable[Dict[str,
         "follower_band": _band(follower_count),
         "primary_category": primary_category,
         "category_scores": scores,
-        "languages": languages or profile.get("language_signals") or [],
+        "languages": languages,
+        "feature_version": FEATURE_VERSION,
         "content_type_mix": _counts(item.get("content_type") for item in posts),
         "post_sample_size": len(posts),
         "posts_with_metrics": sum(1 for item in posts if item.get("like_count") is not None),
@@ -339,7 +384,9 @@ def derive_creator_features(profile: Dict[str, Any], content: Iterable[Dict[str,
             "business_category": profile.get("business_category"),
             "account_type": profile.get("account_type"),
             "external_url": profile.get("external_url"),
-            "language_signals": profile.get("language_signals") or [],
+            # Recomputed from the bio: stored signals on older captures came from the whole page.
+            "language_signals": language_signals(" ".join(
+                str(profile.get(key) or "") for key in ("display_name", "bio_text"))),
             "commercial_signals": profile.get("commercial_signals") or {},
         },
         "ai_analysis": ai_features,

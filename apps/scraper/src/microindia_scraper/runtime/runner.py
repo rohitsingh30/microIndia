@@ -219,10 +219,10 @@ class Runner:
             except AuthRequired as exc:
                 result = AuthBlocked(str(exc))
             except Throttled as exc:
+                # Not the task's fault: give the attempt back. ``apply`` writes task["attempts"], so the
+                # refund has to happen on the task itself (a direct UPDATE would be overwritten).
                 result = Retry(f"throttled: {exc}", after_seconds=180)
-                self.tasks.connection.execute(
-                    "UPDATE tasks SET attempts = MAX(0, attempts - 1) WHERE task_id = ?", (task["task_id"],))
-                self.tasks.connection.commit()
+                task["attempts"] = max(0, int(task.get("attempts") or 0) - 1)
             except asyncio.TimeoutError:
                 result = Retry(f"timed out after {spec.timeout_seconds:.0f}s")
                 replace_page = True

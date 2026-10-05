@@ -561,3 +561,24 @@ class LeaseOwnershipTest(unittest.TestCase):
         self.assertIn("did not start", repr(caught.exception))
         status = self.store.connection.execute("SELECT status FROM runners WHERE runner_id='rs'").fetchone()["status"]
         self.assertEqual(status, "starting")  # visible to the watchdog's stale-heartbeat check
+
+
+@handler("test.throttled", needs_page=False)
+async def _throttled_handler(ctx, task):
+    from microindia_scraper.runtime.pacing import Throttled
+    raise Throttled("429")
+
+
+class ThrottleRefundTest(unittest.TestCase):
+    def test_throttled_task_gets_its_attempt_back(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            db = os.path.join(tmp, "t.sqlite3")
+            store = TaskStore(db)
+            store.enqueue("test.throttled", "a")
+            session, _ = fake_session()
+            runner = Runner(tasks=store, session=session, kinds=["test.throttled"], tabs=1, database=db,
+                            runner_id="r", poll_seconds=0.01, housekeeping_seconds=0.01, max_tasks=1)
+            asyncio.run(asyncio.wait_for(runner.run(), 5))
+            row = store.connection.execute("SELECT state, attempts FROM tasks").fetchone()
+            self.assertEqual((row["state"], row["attempts"]), ("queued", 0))
+            store.close()

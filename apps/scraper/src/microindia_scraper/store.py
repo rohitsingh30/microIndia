@@ -51,6 +51,10 @@ class CaptureStore:
                 completeness_score REAL
             );
 
+            -- Per-creator lookups (reel selection, dossiers) by URL or key, newest first.
+            CREATE INDEX IF NOT EXISTS profile_captures_url ON profile_captures(profile_url, captured_at);
+            CREATE INDEX IF NOT EXISTS profile_captures_key ON profile_captures(candidate_key);
+
             CREATE TABLE IF NOT EXISTS profile_snapshots (
                 capture_id TEXT PRIMARY KEY REFERENCES profile_captures(capture_id),
                 payload TEXT NOT NULL,
@@ -911,8 +915,15 @@ class CaptureStore:
         return [json.loads(row["payload"]) for row in rows]
 
     def materialize_capture_features(self, capture_id: str, feature_version: str, calculated_at: str) -> Optional[int]:
-        """Normalize one immutable capture into creator/post feature records."""
-        from .intelligence import derive_creator_features, derive_post_features
+        """Normalize one immutable capture into creator/post feature records.
+
+        Rows are stamped with ``intelligence.FEATURE_VERSION`` (the version of the code that
+        derived them). ``feature_version`` is kept for callers and ignored, so a stale label
+        can never be written next to features computed by newer code.
+        """
+        from .intelligence import FEATURE_VERSION, derive_creator_features, derive_post_features
+
+        feature_version = FEATURE_VERSION
 
         capture = self.get_capture(capture_id)
         profile = self.get_profile_payload(capture_id)

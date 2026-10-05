@@ -1,0 +1,470 @@
+{
+ "type": "object",
+ "properties": {
+  "brand_summary": {
+   "type": "string",
+   "description": "One paragraph a brand marketer can read in 20 seconds: who this creator is, what they make, how it lands, what they are good for, and the main caution."
+  },
+  "content_pillars": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "description": {
+      "type": "string"
+     },
+     "reels": {
+      "type": "integer",
+      "description": "How many analysed reels belong to it."
+     },
+     "evidence_reels": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "description": "Reel shortcode from the input."
+      }
+     }
+    },
+    "required": [
+     "name",
+     "description",
+     "reels",
+     "evidence_reels"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "signature_formats": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "format": {
+      "type": "string"
+     },
+     "description": {
+      "type": "string"
+     },
+     "evidence_reels": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "description": "Reel shortcode from the input."
+      }
+     }
+    },
+    "required": [
+     "format",
+     "description",
+     "evidence_reels"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "voice": {
+   "type": "object",
+   "properties": {
+    "description": {
+     "type": "string",
+     "description": "How they come across, in plain words (e.g. 'warm, chatty Chennai mom who demos products in her own kitchen')."
+    },
+    "tone": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "languages": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "language": {
+        "type": "string"
+       },
+       "usage": {
+        "type": "string",
+        "enum": [
+         "primary",
+         "secondary",
+         "occasional",
+         "captions_only"
+        ]
+       },
+       "evidence_reels": {
+        "type": "array",
+        "items": {
+         "type": "string",
+         "description": "Reel shortcode from the input."
+        }
+       }
+      },
+      "required": [
+       "language",
+       "usage",
+       "evidence_reels"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "face_on_camera": {
+     "type": "string",
+     "enum": [
+      "usually",
+      "sometimes",
+      "rarely",
+      "unknown"
+     ]
+    }
+   },
+   "required": [
+    "description",
+    "tone",
+    "languages",
+    "face_on_camera"
+   ],
+   "additionalProperties": false
+  },
+  "audience_persona": {
+   "type": "object",
+   "properties": {
+    "description": {
+     "type": "string",
+     "description": "Who the content is made for, from the content itself. No age/gender numbers."
+    },
+    "evidence_reels": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Reel shortcode from the input."
+     }
+    }
+   },
+   "required": [
+    "description",
+    "evidence_reels"
+   ],
+   "additionalProperties": false
+  },
+  "production_level": {
+   "type": "object",
+   "properties": {
+    "score": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 5
+    },
+    "description": {
+     "type": "string"
+    },
+    "evidence_reels": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Reel shortcode from the input."
+     }
+    }
+   },
+   "required": [
+    "score",
+    "description",
+    "evidence_reels"
+   ],
+   "additionalProperties": false
+  },
+  "brands": {
+   "type": "object",
+   "properties": {
+    "worked_with": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "brand": {
+        "type": "string"
+       },
+       "relationship": {
+        "type": "string",
+        "enum": [
+         "paid_partnership",
+         "disclosed_ad",
+         "gifted_or_pr",
+         "collab_post",
+         "likely_undisclosed_promo",
+         "organic_mention"
+        ]
+       },
+       "evidence_reels": {
+        "type": "array",
+        "items": {
+         "type": "string",
+         "description": "Reel shortcode from the input."
+        }
+       }
+      },
+      "required": [
+       "brand",
+       "relationship",
+       "evidence_reels"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "sponsored_vs_organic": {
+     "type": "string",
+     "description": "How sponsored reels performed against organic ones, using only the numbers given. Say so when the sample is too small."
+    },
+    "brand_readiness": {
+     "type": "string",
+     "description": "How ready they are for brand work: disclosure habits, integration style, consistency."
+    }
+   },
+   "required": [
+    "worked_with",
+    "sponsored_vs_organic",
+    "brand_readiness"
+   ],
+   "additionalProperties": false
+  },
+  "category_fit": {
+   "type": "array",
+   "description": "Brand categories this creator fits, best first.",
+   "items": {
+    "type": "object",
+    "properties": {
+     "niche": {
+      "type": "string",
+      "enum": [
+       "food",
+       "baking",
+       "fashion",
+       "ethnic wear",
+       "beauty",
+       "skincare",
+       "fitness",
+       "yoga & wellness",
+       "nutrition & health",
+       "travel",
+       "trekking & outdoors",
+       "tech",
+       "coding & careers",
+       "finance",
+       "business & startups",
+       "education",
+       "parenting",
+       "comedy",
+       "dance",
+       "music",
+       "art & design",
+       "photography",
+       "film & acting",
+       "gaming",
+       "auto",
+       "pets",
+       "books",
+       "home & decor",
+       "diy & crafts",
+       "weddings",
+       "spirituality",
+       "sports",
+       "sustainability",
+       "farming & rural",
+       "law & public affairs",
+       "lifestyle & vlogs"
+      ]
+     },
+     "fit": {
+      "type": "string",
+      "enum": [
+       "strong",
+       "moderate",
+       "weak"
+      ]
+     },
+     "why": {
+      "type": "string"
+     },
+     "evidence_reels": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "description": "Reel shortcode from the input."
+      }
+     }
+    },
+    "required": [
+     "niche",
+     "fit",
+     "why",
+     "evidence_reels"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "brand_safety": {
+   "type": "object",
+   "properties": {
+    "rating": {
+     "type": "string",
+     "enum": [
+      "safe",
+      "caution",
+      "risky",
+      "unknown"
+     ]
+    },
+    "summary": {
+     "type": "string"
+    },
+    "flags": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "flag": {
+        "type": "string"
+       },
+       "evidence_reels": {
+        "type": "array",
+        "items": {
+         "type": "string",
+         "description": "Reel shortcode from the input."
+        }
+       }
+      },
+      "required": [
+       "flag",
+       "evidence_reels"
+      ],
+      "additionalProperties": false
+     }
+    }
+   },
+   "required": [
+    "rating",
+    "summary",
+    "flags"
+   ],
+   "additionalProperties": false
+  },
+  "strengths": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "point": {
+      "type": "string"
+     },
+     "evidence_reels": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "description": "Reel shortcode from the input."
+      }
+     }
+    },
+    "required": [
+     "point",
+     "evidence_reels"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "risks": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "point": {
+      "type": "string"
+     },
+     "evidence_reels": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "description": "Reel shortcode from the input."
+      }
+     }
+    },
+    "required": [
+     "point",
+     "evidence_reels"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "pitch_angles": {
+   "type": "array",
+   "minItems": 3,
+   "maxItems": 3,
+   "items": {
+    "type": "object",
+    "properties": {
+     "angle": {
+      "type": "string"
+     },
+     "idea": {
+      "type": "string",
+      "description": "A concrete reel idea a brand could brief, in this creator's style."
+     },
+     "suits": {
+      "type": "string",
+      "description": "Kind of brand/product it suits."
+     },
+     "evidence_reels": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "description": "Reel shortcode from the input."
+      }
+     }
+    },
+    "required": [
+     "angle",
+     "idea",
+     "suits",
+     "evidence_reels"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "unknowns": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "field": {
+      "type": "string"
+     },
+     "reason": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "field",
+     "reason"
+    ],
+    "additionalProperties": false
+   }
+  }
+ },
+ "required": [
+  "brand_summary",
+  "content_pillars",
+  "signature_formats",
+  "voice",
+  "audience_persona",
+  "production_level",
+  "brands",
+  "category_fit",
+  "brand_safety",
+  "strengths",
+  "risks",
+  "pitch_angles",
+  "unknowns"
+ ],
+ "additionalProperties": false
+}

@@ -7,6 +7,7 @@ sourcing: its similar accounts and every account it mentions get queued.
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, Dict
 
 from ..runtime import AuthBlocked, Done, Fail, FollowUp, Retry, Skip, TaskContext, TaskStore, handler
@@ -80,7 +81,21 @@ async def scrape_profile(ctx: TaskContext, task: Dict[str, Any]):
         depth = FOCUS_PRIORITY - 1
     else:
         depth = breadth_priority(data["category"], niche_coverage(ctx.tasks), wide=5, deep=2) if data["category"] else 3
-    return Done(data, follow_ups=_follow_ups(username, profile, content, payload, brand_active=data["brand_ready"], depth=depth))
+    follow_ups = _follow_ups(username, profile, content, payload, brand_active=data["brand_ready"], depth=depth)
+    follow_ups += await asyncio.to_thread(_reel_follow_ups, ctx, username, bool(data["brand_ready"]))
+    return Done(data, follow_ups=follow_ups)
+
+
+def _reel_follow_ups(ctx: TaskContext, username: str, brand_ready: bool) -> list:
+    """``media.reel`` for the kept creator's selected reels (≥15: recent, best, sponsored/collab). They run on
+    the media worker, gated by the analyzer backlog and disk (analysis/ops.py). Never fails the scrape."""
+    try:
+        from ..analysis.selection import reel_follow_ups
+
+        return reel_follow_ups(ctx.database, username, brand_ready=brand_ready)
+    except Exception as exc:  # selection is read-only and optional; a bug here must not cost a profile
+        ctx.log(event="reel_selection_failed", username=username, error=repr(exc))
+        return []
 
 
 def _niche_from(profile: Dict[str, Any], content: list, payload: Dict[str, Any]) -> Any:

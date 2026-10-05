@@ -142,16 +142,16 @@ class CaptureStoreTests(unittest.TestCase):
     def test_reel_analysis_profiles_topic_hook_language_and_cta(self):
         analysis = analyze_reel({
             "content_type": "reel",
-            "caption_text": "How to make this Delhi recipe — save and follow for more! #food",
-            "text_content": "आज की आसान रेसिपी",
+            "caption_text": "How to make this Delhi recipe — save and follow for more! आज की आसान रेसिपी #food",
+            "text_content": "page body with comments",
         })
         self.assertEqual(analysis["topic"], "food")
         self.assertTrue(analysis["call_to_action"])
         self.assertTrue(analysis["has_extracted_text"])
-        self.assertIn("hi-or-devanagari", analysis["language_signals"])
+        self.assertIn("hi", analysis["language_signals"])
 
     def test_reel_features_are_persisted_for_each_reel(self):
-        features = derive_post_features({"content_type": "reel", "caption_text": "Travel tips in Kerala", "text_content": "Save this guide"}, 10000)
+        features = derive_post_features({"content_type": "reel", "caption_text": "Travel tips in Kerala. Save this guide"}, 10000)
         self.assertEqual(features["reel_analysis"]["topic"], "travel")
         self.assertTrue(features["reel_analysis"]["call_to_action"])
 

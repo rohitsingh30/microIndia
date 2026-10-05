@@ -10,7 +10,7 @@ import time
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-from .intelligence import REEL_ANALYSIS_VERSION, derive_post_features
+from .intelligence import FEATURE_VERSION, REEL_ANALYSIS_VERSION, derive_post_features
 
 
 DEFAULT_DATABASE = "data/microindia.sqlite3"
@@ -41,8 +41,10 @@ def _with_busy_retry(callback: Any, retries: int, retry_seconds: float) -> Any:
     raise RuntimeError("unreachable")
 
 
-def _needs_analysis(payload: Dict[str, Any]) -> bool:
+def _needs_analysis(payload: Dict[str, Any], feature_version: Optional[str] = None) -> bool:
     analysis = payload.get("reel_analysis")
+    if feature_version is not None and feature_version != FEATURE_VERSION:
+        return True
     return not isinstance(analysis, dict) or analysis.get("analysis_version") != REEL_ANALYSIS_VERSION
 
 
@@ -64,7 +66,7 @@ def backfill(
             limit = batch_size if remaining is None else min(batch_size, remaining)
             rows = connection.execute(
                 """SELECT p.post_id, po.payload AS observation_payload, ps.payload AS profile_payload,
-                          pf.payload AS feature_payload
+                          pf.payload AS feature_payload, pf.feature_version AS feature_version
                    FROM posts p
                    JOIN post_observations po ON po.observation_id = (
                        SELECT po2.observation_id FROM post_observations po2
@@ -83,7 +85,7 @@ def backfill(
             for row in rows:
                 counts["examined"] += 1
                 existing = json.loads(row["feature_payload"]) if row["feature_payload"] else {}
-                if not _needs_analysis(existing):
+                if not _needs_analysis(existing, row["feature_version"] or ""):
                     counts["skipped"] += 1
                     continue
                 observation = json.loads(row["observation_payload"])
@@ -93,7 +95,7 @@ def backfill(
                 if analysis.get("analysis_confidence") == "insufficient_text_evidence":
                     counts["low_evidence"] += 1
                 updates.append((
-                    "features-v1",
+                    FEATURE_VERSION,
                     json.dumps(features, sort_keys=True),
                     _now(),
                     row["post_id"],

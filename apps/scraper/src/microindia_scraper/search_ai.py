@@ -4,11 +4,10 @@
     {"city": "Hyderabad", "category": "food", "max_followers": 50000, "brand": "1"}
 
 Two engines, same output:
-- ``llm``: one call per message to an external command (OpenCode by default),
-  configured with MICROINDIA_LLM_CMD, e.g. ``opencode run --model <provider/model>``.
-  The prompt is passed on stdin; the command must print the JSON answer.
+- ``llm``: one Claude (Sonnet) call per message through ``llm.py`` with a JSON schema. Switched on
+  with MICROINDIA_LLM=on (see ``llm.brand_ai_enabled``).
 - ``rules``: deterministic parser, free and instant; also the fallback whenever
-  the LLM is not configured, fails, or returns something unusable.
+  the LLM is off, fails, or returns something unusable.
 """
 
 from __future__ import annotations
@@ -16,8 +15,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import shlex
-import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
 CRITERIA_KEYS = ("q", "city", "category", "language", "min_followers", "max_followers", "min_engagement",
@@ -128,28 +125,43 @@ Reply with ONLY a JSON object using any of these keys (omit what the user did no
 """
 
 
+SEARCH_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "q": {"type": ["string", "null"]},
+        "city": {"type": ["string", "null"]},
+        "category": {"type": ["string", "null"]},
+        "language": {"type": ["string", "null"]},
+        "min_followers": {"type": ["integer", "null"]},
+        "max_followers": {"type": ["integer", "null"]},
+        "min_engagement": {"type": ["number", "null"]},
+        "india": {"type": ["string", "null"]},
+        "brand": {"type": ["string", "null"]},
+        "active_days": {"type": ["integer", "null"]},
+        "reply": {"type": "string"},
+    },
+    "required": ["reply"],
+}
+
+
 def parse_llm(message: str, current: Dict[str, str]) -> Optional[Tuple[Dict[str, str], str]]:
-    command = os.environ.get("MICROINDIA_LLM_CMD", "").strip()
-    if not command:
+    from . import llm
+
+    if not llm.brand_ai_enabled():
         return None
     prompt = PROMPT.format(
         current=json.dumps(current), message=message, cities=sorted(set(CITY_ALIASES.values())),
         categories=list(__import__("microindia_scraper.niches", fromlist=["NICHES"]).NICHES), languages=list(LANGUAGES.values()),
     )
     try:
-        # "{prompt}" in the command passes the prompt as an argument (opencode run); otherwise stdin.
-        argv = [part.replace("{prompt}", prompt) for part in shlex.split(command)]
-        completed = subprocess.run(argv, input=None if "{prompt}" in command else prompt, capture_output=True, text=True,
-                                   timeout=float(os.environ.get("MICROINDIA_LLM_TIMEOUT", "45")))
-    except (OSError, subprocess.TimeoutExpired):
+        answer, _ = llm.call(prompt, schema=SEARCH_SCHEMA, model="sonnet", purpose="search.parse",
+                             timeout=float(os.environ.get("MICROINDIA_LLM_TIMEOUT", "45")),
+                             retries=0, slot_wait=5)  # a brand request never queues behind the analyzer
+    except llm.LLMError:
         return None
-    match = re.search(r"\{.*\}", completed.stdout, re.S)
-    if completed.returncode != 0 or not match:
+    if not isinstance(answer, dict):
         return None
-    try:
-        answer = json.loads(match.group(0))
-    except json.JSONDecodeError:
-        return None
+    answer = dict(answer)
     reply = str(answer.pop("reply", "") or "")
     criteria = {k: str(v) for k, v in answer.items() if k in CRITERIA_KEYS and v not in (None, "", False)}
     return criteria, reply

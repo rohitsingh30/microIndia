@@ -10,6 +10,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 from .brand import DISCLOSURE_RE
 
+from .shortcodes import permalink_timestamp
 from .constants import COHORT_MAX_FOLLOWERS, COHORT_MIN_FOLLOWERS, DISPLAY_BANDS as BANDS
 
 
@@ -50,7 +51,8 @@ def creator_insights(creator: Dict[str, Any], posts: List[Dict[str, Any]], peers
             "permalink": post.get("permalink"),
             "type": post.get("content_type") or "post",
             "caption": (post.get("caption_text") or "")[:220],
-            "published_ts": _ts(post.get("published_at")),
+            # The page often omits the date; the post's own id always carries it.
+            "published_ts": _ts(post.get("published_at")) or permalink_timestamp(post.get("permalink")),
             "likes": likes, "comments": comments, "views": views,
             "engagement": engagement,
             "rate": engagement / followers if engagement is not None and followers else None,

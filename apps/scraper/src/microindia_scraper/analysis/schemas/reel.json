@@ -1,0 +1,747 @@
+{
+ "type": "object",
+ "properties": {
+  "summary": {
+   "type": "string",
+   "description": "Two short lines for a marketer: what happens in the reel and what it is for."
+  },
+  "hook": {
+   "type": "object",
+   "properties": {
+    "visual": {
+     "type": "string",
+     "description": "What the viewer sees in the first 3 seconds (H0-H3)."
+    },
+    "spoken": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "description": "Words spoken in the first 3 seconds, quoted from the transcript; null if none."
+    },
+    "on_screen_text": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "description": "Text overlaid in the first 3 seconds, verbatim; null if none."
+    },
+    "technique": {
+     "type": "string",
+     "description": "The hook device in plain words, e.g. 'question to camera', 'before/after reveal', 'trending audio + text promise'."
+    },
+    "strength": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 5
+    },
+    "evidence": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    }
+   },
+   "required": [
+    "visual",
+    "spoken",
+    "on_screen_text",
+    "technique",
+    "strength",
+    "evidence"
+   ],
+   "additionalProperties": false
+  },
+  "format": {
+   "type": "object",
+   "properties": {
+    "primary": {
+     "type": "string",
+     "enum": [
+      "talking_head",
+      "tutorial",
+      "recipe",
+      "review",
+      "unboxing",
+      "product_demo",
+      "get_ready_with_me",
+      "vlog",
+      "day_in_life",
+      "storytime",
+      "skit_comedy",
+      "lip_sync",
+      "dance",
+      "transition_outfit",
+      "haul_or_outfit_showcase",
+      "montage_aesthetic",
+      "before_after",
+      "interview_street",
+      "listicle_tips",
+      "slideshow_photos",
+      "event_coverage",
+      "travel_showcase",
+      "other"
+     ]
+    },
+    "description": {
+     "type": "string"
+    },
+    "evidence": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    }
+   },
+   "required": [
+    "primary",
+    "description",
+    "evidence"
+   ],
+   "additionalProperties": false
+  },
+  "topic": {
+   "type": "object",
+   "properties": {
+    "niche": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "enum": [
+      "food",
+      "baking",
+      "fashion",
+      "ethnic wear",
+      "beauty",
+      "skincare",
+      "fitness",
+      "yoga & wellness",
+      "nutrition & health",
+      "travel",
+      "trekking & outdoors",
+      "tech",
+      "coding & careers",
+      "finance",
+      "business & startups",
+      "education",
+      "parenting",
+      "comedy",
+      "dance",
+      "music",
+      "art & design",
+      "photography",
+      "film & acting",
+      "gaming",
+      "auto",
+      "pets",
+      "books",
+      "home & decor",
+      "diy & crafts",
+      "weddings",
+      "spirituality",
+      "sports",
+      "sustainability",
+      "farming & rural",
+      "law & public affairs",
+      "lifestyle & vlogs",
+      null
+     ]
+    },
+    "secondary_niches": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "food",
+       "baking",
+       "fashion",
+       "ethnic wear",
+       "beauty",
+       "skincare",
+       "fitness",
+       "yoga & wellness",
+       "nutrition & health",
+       "travel",
+       "trekking & outdoors",
+       "tech",
+       "coding & careers",
+       "finance",
+       "business & startups",
+       "education",
+       "parenting",
+       "comedy",
+       "dance",
+       "music",
+       "art & design",
+       "photography",
+       "film & acting",
+       "gaming",
+       "auto",
+       "pets",
+       "books",
+       "home & decor",
+       "diy & crafts",
+       "weddings",
+       "spirituality",
+       "sports",
+       "sustainability",
+       "farming & rural",
+       "law & public affairs",
+       "lifestyle & vlogs"
+      ]
+     }
+    },
+    "subject": {
+     "type": "string",
+     "description": "The specific subject in a few words, e.g. 'laundry detergent demo', 'Pune street food crawl'."
+    },
+    "evidence": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    }
+   },
+   "required": [
+    "niche",
+    "secondary_niches",
+    "subject",
+    "evidence"
+   ],
+   "additionalProperties": false
+  },
+  "audio": {
+   "type": "object",
+   "properties": {
+    "kind": {
+     "type": "string",
+     "enum": [
+      "speech",
+      "speech_over_music",
+      "music_only",
+      "voiceover",
+      "silent",
+      "unknown"
+     ]
+    },
+    "spoken_languages": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "language": {
+        "type": "string",
+        "description": "English name, e.g. Hindi, English, Tamil. Use 'Hinglish' for mixed Hindi-English speech."
+       },
+       "share": {
+        "type": "string",
+        "enum": [
+         "dominant",
+         "partial",
+         "brief"
+        ]
+       },
+       "evidence": {
+        "type": "array",
+        "items": {
+         "type": "string",
+         "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+        }
+       }
+      },
+      "required": [
+       "language",
+       "share",
+       "evidence"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "music": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "description": "Track or audio name when music is used (from meta:audio), else null."
+    },
+    "evidence": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    }
+   },
+   "required": [
+    "kind",
+    "spoken_languages",
+    "music",
+    "evidence"
+   ],
+   "additionalProperties": false
+  },
+  "on_screen_text": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "text": {
+      "type": "string"
+     },
+     "frame": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    },
+    "required": [
+     "text",
+     "frame"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "products_brands": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "kind": {
+      "type": "string",
+      "enum": [
+       "brand",
+       "product",
+       "place_business"
+      ]
+     },
+     "how": {
+      "type": "string",
+      "enum": [
+       "visible",
+       "spoken",
+       "on_screen_text",
+       "caption",
+       "tagged"
+      ]
+     },
+     "featured": {
+      "type": "boolean",
+      "description": "true when the reel is about it / promotes it, false when merely in the background."
+     },
+     "evidence": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+      }
+     }
+    },
+    "required": [
+     "name",
+     "kind",
+     "how",
+     "featured",
+     "evidence"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "sponsorship": {
+   "type": "object",
+   "properties": {
+    "disclosed": {
+     "type": "boolean",
+     "description": "Paid-partnership label, #ad/#sponsored/#collab or a spoken/written disclosure."
+    },
+    "disclosure": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "description": "The disclosure exactly as it appears; null if none."
+    },
+    "detected": {
+     "type": "boolean",
+     "description": "The content itself reads as promotion of a brand/product/place (featured product, discount code, brand tag), disclosed or not."
+    },
+    "brand": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "confidence": {
+     "type": "string",
+     "enum": [
+      "high",
+      "medium",
+      "low"
+     ]
+    },
+    "evidence": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    }
+   },
+   "required": [
+    "disclosed",
+    "disclosure",
+    "detected",
+    "brand",
+    "confidence",
+    "evidence"
+   ],
+   "additionalProperties": false
+  },
+  "production": {
+   "type": "object",
+   "properties": {
+    "quality": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 5,
+     "description": "1 shaky phone/no edit, 3 clean phone shoot with cuts and captions, 5 studio-grade lighting, sound and edit."
+    },
+    "notes": {
+     "type": "string",
+     "description": "Lighting, framing, sound, editing, text design, in one sentence."
+    },
+    "evidence": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    }
+   },
+   "required": [
+    "quality",
+    "notes",
+    "evidence"
+   ],
+   "additionalProperties": false
+  },
+  "face_to_camera": {
+   "type": "object",
+   "properties": {
+    "value": {
+     "type": [
+      "boolean",
+      "null"
+     ]
+    },
+    "evidence": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    }
+   },
+   "required": [
+    "value",
+    "evidence"
+   ],
+   "additionalProperties": false
+  },
+  "setting": {
+   "type": "object",
+   "properties": {
+    "description": {
+     "type": "string",
+     "description": "Where it is shot: home kitchen, street market, studio, car, office..."
+    },
+    "city_cues": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "place": {
+        "type": "string"
+       },
+       "evidence": {
+        "type": "array",
+        "items": {
+         "type": "string",
+         "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+        }
+       }
+      },
+      "required": [
+       "place",
+       "evidence"
+      ],
+      "additionalProperties": false
+     }
+    }
+   },
+   "required": [
+    "description",
+    "city_cues"
+   ],
+   "additionalProperties": false
+  },
+  "tone": {
+   "type": "object",
+   "properties": {
+    "labels": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "description": {
+     "type": "string",
+     "description": "How the creator comes across, in plain marketer words."
+    },
+    "evidence": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    }
+   },
+   "required": [
+    "labels",
+    "description",
+    "evidence"
+   ],
+   "additionalProperties": false
+  },
+  "target_audience": {
+   "type": "object",
+   "properties": {
+    "description": {
+     "type": "string",
+     "description": "Who this reel is made for, judged from the content itself: interests, situation, life stage in words. No age ranges or gender unless the reel states them."
+    },
+    "evidence": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    }
+   },
+   "required": [
+    "description",
+    "evidence"
+   ],
+   "additionalProperties": false
+  },
+  "cta": {
+   "type": "object",
+   "properties": {
+    "present": {
+     "type": "boolean"
+    },
+    "text": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "kind": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "enum": [
+      "follow",
+      "comment",
+      "save_share",
+      "link_in_bio",
+      "buy_or_order",
+      "discount_code",
+      "visit_place",
+      "dm",
+      "other",
+      null
+     ]
+    },
+    "evidence": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    }
+   },
+   "required": [
+    "present",
+    "text",
+    "kind",
+    "evidence"
+   ],
+   "additionalProperties": false
+  },
+  "brand_safety": {
+   "type": "object",
+   "properties": {
+    "flags": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "flag": {
+        "type": "string",
+        "enum": [
+         "profanity",
+         "sexual_content",
+         "alcohol_tobacco",
+         "drugs",
+         "violence",
+         "dangerous_stunt",
+         "political",
+         "religious_sensitivity",
+         "hate_or_mockery",
+         "misinformation_health_finance",
+         "gambling_betting",
+         "competitor_heavy",
+         "child_safety",
+         "other"
+        ]
+       },
+       "severity": {
+        "type": "string",
+        "enum": [
+         "low",
+         "medium",
+         "high"
+        ]
+       },
+       "detail": {
+        "type": "string"
+       },
+       "evidence": {
+        "type": "array",
+        "items": {
+         "type": "string",
+         "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+        }
+       }
+      },
+      "required": [
+       "flag",
+       "severity",
+       "detail",
+       "evidence"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "safe_for_most_brands": {
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "flags",
+    "safe_for_most_brands"
+   ],
+   "additionalProperties": false
+  },
+  "performance": {
+   "type": "object",
+   "properties": {
+    "verdict": {
+     "type": "string",
+     "enum": [
+      "over",
+      "in_line",
+      "under",
+      "unknown"
+     ]
+    },
+    "explanation": {
+     "type": "string",
+     "description": "Why it did better or worse than the creator's own median, tied to what is in the reel. Say 'unknown' plainly when metrics are missing."
+    },
+    "evidence": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     }
+    }
+   },
+   "required": [
+    "verdict",
+    "explanation",
+    "evidence"
+   ],
+   "additionalProperties": false
+  },
+  "evidence": {
+   "type": "array",
+   "description": "The 4-10 most important observations behind this analysis.",
+   "items": {
+    "type": "object",
+    "properties": {
+     "ref": {
+      "type": "string",
+      "description": "Evidence reference: H0-H3 (hook frame at 0-3 s), K1-K8 (keyframe), T<seconds> or T<start>-<end> (transcript time), 'caption', 'meta:<field>' (media metadata such as meta:paid_partnership, meta:audio, meta:usertags, meta:location)."
+     },
+     "observation": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "ref",
+     "observation"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "unknowns": {
+   "type": "array",
+   "description": "Every field you could not judge, with why.",
+   "items": {
+    "type": "object",
+    "properties": {
+     "field": {
+      "type": "string"
+     },
+     "reason": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "field",
+     "reason"
+    ],
+    "additionalProperties": false
+   }
+  }
+ },
+ "required": [
+  "summary",
+  "hook",
+  "format",
+  "topic",
+  "audio",
+  "on_screen_text",
+  "products_brands",
+  "sponsorship",
+  "production",
+  "face_to_camera",
+  "setting",
+  "tone",
+  "target_audience",
+  "cta",
+  "brand_safety",
+  "performance",
+  "evidence",
+  "unknowns"
+ ],
+ "additionalProperties": false
+}

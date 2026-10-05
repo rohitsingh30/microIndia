@@ -37,7 +37,27 @@ def _schedulers_for(kinds: List[str]) -> list:
         selected.append(handlers.sourcing.rotate_focus)
     if "scrape.profile" in kinds:
         selected.append(handlers.refresh_eligible)
+    if "analyze.creator" in kinds:
+        # Dossier sweep (every 10 min) and orphan-mp4 sweep (hourly), see analysis/ops.py.
+        from .analysis.ops import analyzer_schedulers
+
+        selected.extend(analyzer_schedulers())
     return selected
+
+
+def _gate_for(kinds: List[str], limit: int, database: str):
+    """Sourcing backpressure, plus a hold on ``media.reel`` while the analyzer is behind or disk is short."""
+    base = _backpressure(limit)
+    if "media.reel" not in kinds:
+        return base
+    from .analysis.ops import media_gate
+
+    media = media_gate(database)
+
+    def gate(tasks: TaskStore) -> dict:
+        return {**base(tasks), **media(tasks)}
+
+    return gate
 
 
 def _backpressure(limit: int):
@@ -72,7 +92,7 @@ def work(args: argparse.Namespace) -> None:
         poll_seconds=args.poll_seconds,
         schedulers=_schedulers_for(kinds),
         max_tasks=args.max_tasks,
-        gate=_backpressure(args.backlog_limit),
+        gate=_gate_for(kinds, args.backlog_limit, args.database),
         hard_exit_seconds=args.hard_exit_seconds,
     )
     try:
