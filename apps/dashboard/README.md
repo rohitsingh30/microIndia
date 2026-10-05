@@ -1,20 +1,23 @@
-# microIndia dashboard
+# apps/dashboard
 
-React + Vite + Tailwind single-page app for the always-on collector. It is
-served by `microindia_scraper.api` on http://127.0.0.1:8787 from `dist/`, and it
-updates live through the `/api/events` Server-Sent Events stream.
+The microIndia brand app: React 18 + Vite + TanStack Query + Tailwind 4. In production the API serves the built `dist/` from http://127.0.0.1:8787. Rules: `CLAUDE.md`. Product: `../../docs/product/STORY.md`.
 
-- **Live**: health, KPIs, 24h throughput, funnel, why profiles get skipped,
-  newest creators, a streaming activity feed, best sources.
-- **Creators**: search (`/`), filters kept in the URL, table or card view, CSV
-  export. Click any row to open the detail drawer (`?creator=handle`).
-- **Pipeline**: task queues, runners, failures with retry, skip reasons,
-  up-next, and an "add seeds" box.
-- **⌘K**: jump to any creator or run an action. `1`/`2`/`3` switch pages and
-  `T` toggles the theme.
-
-```
+```bash
 npm install
 npm run dev      # http://localhost:5173, proxies /api to 127.0.0.1:8787
 npm run build    # writes dist/; the API serves it
+../scraper/.venv/bin/python qa.py   # walks every page, fails on console errors or HTTP ≥ 400
 ```
+
+## Pages today
+- **Live** (`/`): health, headline numbers, 24h throughput, funnel, skip reasons, newest creators, activity feed.
+- **Find** (`/find`): chat-style brand search through `/api/assistant`, with a shortlist and CSV export.
+- **Creators** (`/creators`): search, filters kept in the URL, table or cards, CSV, detail drawer.
+- **Creator** (`/creator/:handle`): profile, engagement against peers, formats, brand activity, best and weakest posts.
+- **Pipeline** (`/pipeline`) and **System** (`/system`): queues, runners, failures, retries, resources.
+- **⌘K** opens a palette for jumping to a creator or running an action.
+
+Live data comes from short polling in `src/lib/live.tsx`: `/api/activity` every 3 s and `/api/summary` every 6 s. Other queries refresh when the summary `version` changes.
+
+## Where it's going (in progress)
+Brief → Shortlist → Creator dossier (reel breakdowns) → Compare → Shortlists/export, plus Ask AI on any creator or list. Live, Pipeline and System move under `/ops`. See `docs/product/STORY.md`.

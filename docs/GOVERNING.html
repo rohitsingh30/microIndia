@@ -1,0 +1,462 @@
+<title>microIndia Project State</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column with a sticky section index; ops-report treatment, status first, detail after. */
+:root{
+  --bg:#f6f7f8; --surface:#ffffff; --sunk:#eceff1; --fg:#17212b; --muted:#5b6876; --line:#d9dee3;
+  --accent:#0f6b6e; --accent-soft:#dcefee;
+  --ok:#1f7a3f; --ok-soft:#e1f2e6; --warn:#a15c00; --warn-soft:#fbeed8; --bad:#b4232c; --bad-soft:#fbe3e4;
+  --bar:#0f6b6e; --bar2:#9db7c0;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f151b; --surface:#16202a; --sunk:#1c2733; --fg:#e4e9ee; --muted:#93a1ae; --line:#2a3744;
+  --accent:#4fc1c2; --accent-soft:#163a3d;
+  --ok:#5cc983; --ok-soft:#173326; --warn:#f0a94a; --warn-soft:#3a2a12; --bad:#f2737a; --bad-soft:#3d1b1f;
+  --bar:#4fc1c2; --bar2:#3b5563; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f151b; --surface:#16202a; --sunk:#1c2733; --fg:#e4e9ee; --muted:#93a1ae; --line:#2a3744;
+  --accent:#4fc1c2; --accent-soft:#163a3d;
+  --ok:#5cc983; --ok-soft:#173326; --warn:#f0a94a; --warn-soft:#3a2a12; --bad:#f2737a; --bad-soft:#3d1b1f;
+  --bar:#4fc1c2; --bar2:#3b5563; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 var(--body);margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:0 80px}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+nav .in{max-width:1040px;margin:0 auto;padding:10px 20px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+nav a{font:600 13px var(--body);color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:6px;white-space:nowrap}
+nav a:hover,nav a:focus-visible{background:var(--sunk);color:var(--fg);outline:none}
+header{padding-block:44px 8px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(32px,5vw,48px)/1.05 var(--display);margin:.25em 0 .3em;text-wrap:balance;letter-spacing:-.01em}
+h2{font:700 28px/1.15 var(--display);margin:0 0 6px;text-wrap:balance}
+h3{font:600 18px/1.3 var(--body);margin:0 0 6px}
+.lede{font-size:19px;color:var(--muted);max-width:68ch;margin:0}
+section{padding-block:48px 8px;scroll-margin-top:56px}
+.sub{color:var(--muted);max-width:68ch;margin:0 0 22px}
+p{max-width:70ch}
+code,.mono{font-family:var(--mono);font-size:.86em}
+code{background:var(--sunk);padding:1px 5px;border-radius:4px}
+.alert{display:grid;grid-template-columns:auto 1fr;gap:14px;background:var(--bad-soft);border:1px solid color-mix(in srgb,var(--bad) 35%,transparent);border-radius:10px;padding:16px 18px;margin-top:26px}
+.alert .dot{width:12px;height:12px;border-radius:50%;background:var(--bad);margin-top:6px;box-shadow:0 0 0 4px color-mix(in srgb,var(--bad) 25%,transparent)}
+.alert p{margin:4px 0 0}
+.alert.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 35%,transparent)}
+.alert.warn .dot{background:var(--warn);box-shadow:0 0 0 4px color-mix(in srgb,var(--warn) 25%,transparent)}
+.agents{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.agent{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:14px 16px;min-width:0}
+.agent b{font-family:var(--mono);font-size:14px;color:var(--accent)}
+.agent p{margin:6px 0 0;font-size:14px;color:var(--muted)}
+.steps{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0 0;font-size:14px}
+.steps span{border:1px solid var(--line);background:var(--surface);padding:6px 10px;border-radius:6px}
+.steps i{color:var(--muted);font-style:normal}
+.tracks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.done{color:var(--ok);font-weight:600}
+@media (max-width:760px){.agents,.tracks{grid-template-columns:1fr}}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:24px}
+.kpi{background:var(--surface);padding:16px 18px}
+.kpi b{display:block;font:700 30px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.kpi span{font-size:14px;color:var(--muted)}
+.kpi small{display:block;font:12px var(--mono);color:var(--muted);margin-top:6px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;min-width:0}
+.cap{font:12px var(--mono);color:var(--muted);margin-top:10px}
+.pill{display:inline-block;font:600 11px var(--mono);letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.p-bad{background:var(--bad-soft);color:var(--bad)} .p-warn{background:var(--warn-soft);color:var(--warn)} .p-ok{background:var(--ok-soft);color:var(--ok)} .p-n{background:var(--sunk);color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+/* timeline */
+.tl{list-style:none;margin:0;padding:0;border-left:2px solid var(--line);margin-left:6px}
+.tl li{position:relative;padding:0 0 22px 22px}
+.tl li::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
+.tl li.now::before{background:var(--bad);border-color:var(--bad)}
+.tl .d{font:600 13px var(--mono);color:var(--accent)}
+.tl li.now .d{color:var(--bad)}
+.tl p{margin:2px 0 0;color:var(--muted)}
+/* bars */
+.hbar{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;align-items:center;font-size:14px;margin:7px 0}
+.hbar .t{height:14px;background:var(--sunk);border-radius:3px;overflow:hidden}
+.hbar .f{height:100%;background:var(--bar)}
+.hbar .v{font-family:var(--mono);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+svg text{fill:var(--muted);font:11px var(--mono)}
+/* arch */
+.arch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.box{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:14px 16px;min-width:0}
+.box h3{font-size:16px}
+.box ul{margin:6px 0 0;padding-left:18px;font-size:14px;color:var(--muted)}
+.box .tag{font:11px var(--mono);color:var(--accent)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:18px 0 0;font-size:14px}
+.flow span.s{background:var(--accent-soft);color:var(--fg);padding:6px 10px;border-radius:6px;font-weight:600}
+.flow i{color:var(--muted);font-style:normal}
+.legacy{opacity:.75;border-style:dashed}
+/* issues */
+.issue{display:grid;grid-template-columns:4px 1fr;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.issue .sev{background:var(--muted)}
+.issue.bad .sev{background:var(--bad)} .issue.warn .sev{background:var(--warn)} .issue.low .sev{background:var(--bar2)}
+.issue .body{padding:14px 18px;min-width:0}
+.issue .top{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.issue p{margin:6px 0 0;color:var(--muted);font-size:15px}
+.issue .ev{font:12px var(--mono);color:var(--muted);margin-top:8px}
+/* roadmap */
+.road{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.road .card h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.road ol{margin:8px 0 0;padding-left:20px;font-size:15px}
+.road li{margin-bottom:8px}
+.road li small{display:block;color:var(--muted)}
+.dec{counter-reset:d}
+.dec .card{margin-bottom:12px}
+.dec .card h3::before{counter-increment:d;content:"Decision " counter(d) " · ";color:var(--accent);font-family:var(--mono);font-size:13px}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.opts span{font-size:13px;border:1px solid var(--line);border-radius:6px;padding:4px 9px;background:var(--bg)}
+.opts span.rec{border-color:var(--accent);color:var(--accent);font-weight:600}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font:12px var(--mono);color:var(--muted)}
+@media (max-width:760px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2,.arch,.road{grid-template-columns:1fr}
+  .hbar{grid-template-columns:110px 1fr 56px}
+}
+@media (prefers-reduced-motion:no-preference){nav a{transition:background .15s}}
+</style>
+
+<nav aria-label="Sections"><div class="in">
+  <a href="#now">Right now</a><a href="#product">Product</a><a href="#work">How work happens</a><a href="#story">What happened</a><a href="#arch">Architecture</a><a href="#data">The data</a><a href="#plan">Plan vs reality</a><a href="#issues">Problems</a><a href="#road">Roadmap</a><a href="#decide">Decisions</a>
+</div></nav>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Snapshot · Tue 6 Oct 2026, 01:45 IST · Phase 0–1 complete</div>
+  <h1>microIndia: where the project stands</h1>
+  <p class="lede">We help brands find real Indian creators they can defend, with every pick backed by evidence from the creator's own reels. A second track, the Local finder, helps people find a local Instagram business for a specific task. Collection runs around the clock and has kept 3,116 creators. The work now moves to deep reel insight and the brand product, run by six project agents under one written workflow.</p>
+
+  <div class="alert warn" role="status">
+    <div class="dot" aria-hidden="true"></div>
+    <div><h3>Collection is running again; the watchdog fix is still pending</h3>
+    <p>The 83-minute stall on 5 Oct ended when the scraper worker restarted. It now processes about 280 profiles an hour. The watchdog still can't detect a stall per task type, and a network drop still burns retries. Both are the first items in Phase 2.</p></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><b>3,116</b><span>Creators kept (eligible)</span><small>+122 in the last hour</small></div>
+    <div class="kpi"><b>73</b><span>Brand-ready creators</span><small>already doing paid posts</small></div>
+    <div class="kpi"><b>31,523</b><span>Tasks waiting</span><small>28,274 profiles · 3,181 similar</small></div>
+    <div class="kpi"><b>0</b><span>Reels analysed (video + audio)</span><small>insight engine is Phase 3</small></div>
+  </div>
+</header>
+
+<section id="now">
+  <h2>Right now: what is running</h2>
+  <p class="sub">Seven processes run on this Mac under one supervisor. Everything coordinates through a single SQLite file.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Process</th><th>Job</th><th>Started</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td><b>Chrome</b> (port 9222)</td><td>The one signed-in Instagram session every worker drives</td><td>14:45</td><td><span class="pill p-ok">Reachable</span></td></tr>
+      <tr><td><b>scraper</b> · 8 tabs</td><td>Opens each queued profile, saves header and 18 posts, decides eligibility</td><td>6 Oct, restarted</td><td><span class="pill p-ok">~280/hr</span></td></tr>
+      <tr><td><b>sourcer</b> · 2 tabs</td><td>Finds new profiles via Instagram search and “similar accounts”</td><td>19:42</td><td><span class="pill p-warn">Half failing</span></td></tr>
+      <tr><td><b>api</b> · port 8787</td><td>Serves the dashboard and the JSON API, rebuilds the creator index</td><td>21:03</td><td><span class="pill p-ok">Up</span></td></tr>
+      <tr><td><b>watchdog</b></td><td>Closes hung tabs, restarts dead workers, writes <code>health.json</code></td><td>20:33</td><td><span class="pill p-warn">Can't see per-kind stalls</span></td></tr>
+      <tr><td><b>local_supervisor</b></td><td>Starts and restarts everything in <code>run/local-workers.json</code></td><td>14:45</td><td><span class="pill p-ok">Up</span></td></tr>
+      <tr><td><b>caffeinate</b></td><td>Keeps the Mac awake</td><td>14:45</td><td><span class="pill p-ok">Up</span></td></tr>
+    </tbody></table></div>
+  <p class="cap">Also on disk: 6 PID files for processes that no longer exist (pilot agents, shared dispatcher, the 1,000-creator cohort run, the old dashboard).</p>
+
+  <div class="grid2" style="margin-top:22px">
+    <div class="card">
+      <h3>Last 2 hours, by task type</h3>
+      <div class="hbar"><span>search · done</span><div class="t"><div class="f" style="width:50%"></div></div><span class="v">27</span></div>
+      <div class="hbar"><span>search · failed</span><div class="t"><div class="f" style="width:50%;background:var(--bad)"></div></div><span class="v">27</span></div>
+      <div class="hbar"><span>similar · done</span><div class="t"><div class="f" style="width:30%"></div></div><span class="v">24</span></div>
+      <div class="hbar"><span>similar · failed</span><div class="t"><div class="f" style="width:30%;background:var(--bad)"></div></div><span class="v">24</span></div>
+      <div class="hbar"><span>similar · skipped</span><div class="t"><div class="f" style="width:40%;background:var(--warn)"></div></div><span class="v">32</span></div>
+      <div class="hbar"><span>profile · done</span><div class="t"><div class="f" style="width:0%"></div></div><span class="v">0</span></div>
+      <p class="cap">“Similar accounts” is returning “user id not found” for every recent account.</p>
+    </div>
+    <div class="card">
+      <h3>Instagram request health today</h3>
+      <div class="hbar"><span>19:00 OK calls</span><div class="t"><div class="f" style="width:100%"></div></div><span class="v">2,279</span></div>
+      <div class="hbar"><span>20:00 OK calls</span><div class="t"><div class="f" style="width:56%"></div></div><span class="v">1,275</span></div>
+      <div class="hbar"><span>21:00 OK calls</span><div class="t"><div class="f" style="width:53%"></div></div><span class="v">1,198</span></div>
+      <div class="hbar"><span>22:00 OK calls</span><div class="t"><div class="f" style="width:1%"></div></div><span class="v">10</span></div>
+      <div class="hbar"><span>Rate-limit (429)</span><div class="t"><div class="f" style="width:1%;background:var(--warn)"></div></div><span class="v">5</span></div>
+      <p class="cap">Rate limits are rare (5 all day). The drop after 22:00 is the stall, not Instagram pushing back.</p>
+    </div>
+  </div>
+</section>
+
+<section id="product">
+  <h2>The product</h2>
+  <p class="sub">Owned by the product-engineer agent in <code>docs/product/STORY.md</code>. Every product decision is logged in <code>docs/product/DECISIONS.md</code>.</p>
+  <div class="tracks">
+    <div class="card">
+      <span class="pill p-ok">Track 1 · main</span>
+      <h3 style="margin-top:10px">Creator shortlists for brands</h3>
+      <p style="margin:6px 0 0">A brand writes a need in plain words, for example “Hinglish skincare creators in Pune, 10–50K, honest reviewers, for a sunscreen launch”. It gets a ranked shortlist where every pick points to the 2–3 reels that prove fit.</p>
+      <p class="cap">For: D2C brand marketers and agency planners, equally</p>
+      <div class="steps"><span>Brief</span><i>→</i><span>Shortlist + why</span><i>→</i><span>Creator dossier</span><i>→</i><span>Compare</span><i>→</i><span>Save · export · outreach</span></div>
+    </div>
+    <div class="card">
+      <span class="pill p-warn">Track 2 · new</span>
+      <h3 style="margin-top:10px">Local finder</h3>
+      <p style="margin:6px 0 0">Someone in a city finds a local Instagram business for a specific job, for example “eggless photo cake in Vijay Nagar, Indore, under ₹1,500, for Sunday”. Matches show the business's own posts of that kind of work.</p>
+      <p class="cap">For: anyone looking for home bakers, mehendi artists, tailors, tutors, decorators. Starts with 2–3 services in 2–3 cities.</p>
+      <div class="steps"><span>Task + place</span><i>→</i><span>Matches + evidence posts</span><i>→</i><span>Business card</span><i>→</i><span>Contact on their channel</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <h3>What we promise</h3>
+    <p style="margin:6px 0 0"><b>Evidence over scores.</b> Every label traces back to real reels. <b>Unknown stays unknown.</b> Nothing is guessed or zero-filled. <b>AI is the interface and the data is the moat.</b> The chat is only as good as the dossiers underneath it, which is why reel analysis comes first.</p>
+  </div>
+</section>
+
+<section id="work">
+  <h2>How work happens now</h2>
+  <p class="sub">Written into <code>CLAUDE.md</code> and enforced by project agents, skills and hooks in <code>.claude/</code>. Every Claude session in this repo follows it.</p>
+  <div class="steps" style="margin:0 0 18px"><span><b>1</b> product-engineer: is this right for users?</span><i>→</i><span><b>2</b> tech-lead: the plan</span><i>→</i><span><b>3</b> specialist builds</span><i>→</i><span><b>4</b> tests + real run</span><i>→</i><span><b>5</b> tech-lead review</span><i>→</i><span><b>6</b> docs + this page + checkpoint commit</span></div>
+  <div class="agents">
+    <div class="agent"><b>product-engineer</b><p>Always consulted on product decisions. Keeps the product story and the decision log.</p></div>
+    <div class="agent"><b>tech-lead</b><p>Plans every multi-file change, reviews diffs, keeps <code>ARCHITECTURE.md</code> true.</p></div>
+    <div class="agent"><b>insights-engineer</b><p>Reel analysis, creator dossiers, business cards, prompts, <code>llm.py</code>, backfills.</p></div>
+    <div class="agent"><b>scraper-ops</b><p>Keeps collection running: runtime, sourcing, watchdog, new browser stages.</p></div>
+    <div class="agent"><b>brand-experience</b><p>The app: brand product, Local finder, design system, <code>/ops</code>.</p></div>
+    <div class="agent"><b>data-quality</b><p>Label audits, golden sets, eval regressions. Numbers, not impressions.</p></div>
+  </div>
+  <div class="grid2" style="margin-top:18px">
+    <div class="card"><h3>Skills (slash commands)</h3>
+      <p class="cap" style="margin-top:4px">/status · /plan-change · /sync-governing · /restart-worker · /analyze-reel · /creator-dossier · /eval-insights · /local-search · /product-story</p></div>
+    <div class="card"><h3>Guards (hooks)</h3>
+      <p class="cap" style="margin-top:4px">Session start prints live status. Deleting the database and killing Chrome or the supervisor are blocked. Code changed without docs gets a reminder to update docs and sync this page.</p></div>
+  </div>
+</section>
+
+<section id="story">
+  <h2>What happened, in order</h2>
+  <p class="sub">Rebuilt from file dates, logs and the database. The project has no git history of its own, so this is the only record.</p>
+  <ol class="tl">
+    <li><div class="d">26 Sep</div><h3>Plan written, first pilot</h3><p><code>plan.md</code> and <code>tasks.md</code> describe a TypeScript monorepo (Next.js, Express, shared Zod types) with Browser Use agents. The actual build starts in Python instead. Two pilot agents and a “shared dispatcher” capture 210 profiles.</p></li>
+    <li><div class="d">27 Sep</div><h3>Scale attempt with 10 capture agents</h3><p>Ten Browser Use capture agents and a 1,000-creator India cohort run. A macOS launch agent is installed so it starts at login. Only 4 captures are saved that day; the logs show mostly errors.</p></li>
+    <li><div class="d">28 Sep – 3 Oct</div><h3>Quiet week</h3><p>No captures for six days.</p></li>
+    <li><div class="d">4 Oct</div><h3>Rewrite: one task queue, one Chrome</h3><p>A new runtime replaces the agents. Playwright attaches to one signed-in Chrome, and sourcing and scraping become task types in one <code>tasks</code> table. 1,371 captures.</p></li>
+    <li><div class="d">5 Oct, 02:29</div><h3>New runtime goes live</h3><p>Old data migrated, with a backup taken first. The React dashboard (Live, Find, Creators, Pipeline, System) replaces the old server-rendered page.</p></li>
+    <li><div class="d">5 Oct, 06:00–12:00</div><h3>Six hours lost</h3><p>Nothing ran, most likely because the Mac slept. <code>caffeinate</code> was added at 12:32 and the supervisor at 14:45.</p></li>
+    <li><div class="d">5 Oct, afternoon</div><h3>Eligibility widened twice</h3><p>The follower band moved from 10K–100K to 1K–100K and then to 500–1M. A rotating “focus” (niche × city × size) was added. It currently targets nutrition and health creators in Indore with 500–5K followers.</p></li>
+    <li><div class="d">5 Oct, 18:00–21:45</div><h3>Best hours so far</h3><p>1,000–1,200 profiles processed per hour. 8,095 captures for the day.</p></li>
+    <li><div class="d">5 Oct, 21:45 – 23:15</div><h3>Network drop, silent stall</h3><p>207 profiles failed after 3 attempts with “internet disconnected”. The scraper stalled for about 90 minutes until it restarted. The watchdog never noticed.</p></li>
+    <li><div class="d">6 Oct, 00:00</div><h3>Pause and audit</h3><p>This page was published. Direction reset: insight and the brand product come before more scraping. Decisions: Claude CLI as the AI engine, full video and audio reel analysis (at least 15 reels per creator, everything cached), D2C brands and agencies as equal personas, the dashboard becomes the brand product, and a new Local finder track for small businesses.</p></li>
+    <li class="now"><div class="d">6 Oct, 01:45 · checkpoint</div><h3>Phase 0–1: foundation and agent workflow</h3><p>The project has its own git repo. The docs tree is in place (state, product story, decisions, architecture, archive), and all READMEs were rewritten. <code>CLAUDE.md</code> rules are written, 6 project agents, 9 skills and 3 guard hooks are live, and the status module is built. Collection kept running throughout.</p></li>
+  </ol>
+
+  <div class="card" style="margin-top:8px">
+    <h3>Profiles processed per hour, 5 Oct</h3>
+    <div style="overflow-x:auto"><svg id="hourly" viewBox="0 0 720 220" width="100%" style="min-width:520px" role="img" aria-label="Profiles processed per hour on 5 October"></svg></div>
+    <p class="cap">Kept + dropped + failed scrape tasks per hour. Gaps: 06–11 (Mac asleep) and 22–23 (stalled).</p>
+  </div>
+</section>
+
+<section id="arch">
+  <h2>Architecture as it actually is</h2>
+  <p class="sub">Two apps live in <code>apps/</code>, and nothing from <code>packages/</code> in the plan exists. The Python side has about 9,500 lines; roughly 2,300 of them belong to the old system and no longer run.</p>
+
+  <div class="arch">
+    <div class="box"><div class="tag">INPUT</div><h3>Chrome + Instagram</h3>
+      <ul><li>One personal signed-in account, Chrome Profile 2</li><li>Driven over CDP (port 9222) by Playwright</li><li>Shared pacing slows down on 429s</li><li>A login challenge pauses every worker</li></ul></div>
+    <div class="box"><div class="tag">ENGINE · runtime/ + handlers/</div><h3>Task runtime</h3>
+      <ul><li><code>source.search</code>: niche × city queries</li><li><code>source.similar</code>: lookalike accounts</li><li><code>source.list</code>: seed files</li><li><code>scrape.profile</code>: header + 18 posts → eligibility (<code>e2e.py</code>, 716 lines)</li></ul></div>
+    <div class="box"><div class="tag">STORE</div><h3>SQLite (WAL), 224 MB</h3>
+      <ul><li><code>tasks</code>: the queue, 39,543 rows</li><li>Immutable captures: profile, content and metric snapshots</li><li>Normalised: creators, posts, features</li><li>Ops: runners, flags, usage, metrics</li></ul></div>
+    <div class="box"><div class="tag">ANALYSIS</div><h3>Derived intelligence</h3>
+      <ul><li><code>eligibility.py</code>: India, human, AI persona</li><li><code>intelligence.py</code>: niche, reels, engagement</li><li><code>insights.py</code>, <code>brand.py</code>: fit, paid-deal signals</li><li>All rule-based; no LLM here</li></ul></div>
+    <div class="box"><div class="tag">SERVE · api.py, 1,177 lines</div><h3>API on :8787</h3>
+      <ul><li>Creators, summary, pipeline, stats, activity</li><li>Actions: unblock, retry, seed</li><li>Chat search and assistant call an external LLM command (<code>MICROINDIA_LLM_CMD</code>); rules fallback</li></ul></div>
+    <div class="box"><div class="tag">UI · apps/dashboard</div><h3>React dashboard</h3>
+      <ul><li>Vite + React 18 + Tailwind 4, 2,644 lines</li><li>Live · Find · Creators · Creator · Pipeline · System</li><li>Polls every 3–6 s; no unit tests</li></ul></div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="tag" style="font:11px var(--mono);color:var(--accent)">BUILDING · PHASE 3 · analysis/ + llm.py</div>
+    <h3>The insight engine</h3>
+    <p style="margin:6px 0 10px">Three new task kinds run on the same queue. A new <b>analyzer</b> worker (no browser) runs next to the scraper, so collection never pauses.</p>
+    <div class="steps" style="margin:0"><span><code>media.reel</code> plays, duration, audio, cover, video → mp4</span><i>→</i><span><code>analyze.reel</code> keyframes + first 3 s + Whisper transcript → Claude Sonnet</span><i>→</i><span><code>analyze.creator</code> 15+ reels → Claude Opus dossier</span></div>
+    <p class="cap">Reel output: hook, format, topic, spoken languages, on-screen text, products and brands shown, sponsored (detected vs disclosed), production quality, tone, audience, brand safety, and why it beat or missed the creator's usual. Every row is versioned with its prompt hash and input hash. Transcripts, frames, audio and raw outputs are kept so analysis can be re-run later. The same engine produces <code>business_cards</code> for the Local finder.</p>
+  </div>
+
+  <div class="flow" aria-label="Data flow">
+    <span class="s">Search / similar / seeds</span><i>→</i><span class="s">Queue (tasks)</span><i>→</i><span class="s">Scrape profile + 18 posts</span><i>→</i><span class="s">Eligibility gate</span><i>→</i><span class="s">Creators + features</span><i>→</i><span class="s">API</span><i>→</i><span class="s">Dashboard / brand search</span>
+  </div>
+  <p class="cap">Feedback loop: every kept creator queues its own “similar accounts” plus every account it mentions. That is why the queue grows faster than it drains.</p>
+
+  <div class="grid2" style="margin-top:22px">
+    <div class="box"><div class="tag">OPS</div><h3>Keeping it alive</h3>
+      <ul><li><code>local_supervisor</code>: restarts crashed processes</li><li><code>watchdog</code>: hung tabs, dead heartbeats, stalled queue</li><li><code>caffeinate</code>: no sleep</li><li>Launch agent: starts at login</li></ul></div>
+    <div class="box legacy"><div class="tag">LEGACY · still in the codebase, not running</div><h3>The old agent system</h3>
+      <ul><li><code>shared_dispatcher.py</code> (856), <code>cohort.py</code> (493), <code>ui.py</code> (504), <code>queue.py</code>, <code>browser_owner.py</code>, <code>candidate_source.py</code></li><li>9 old tables, kept only for <code>run migrate</code></li><li>4 test files still cover it</li></ul></div>
+  </div>
+</section>
+
+<section id="data">
+  <h2>The data we have</h2>
+  <p class="sub">The funnel from “we saw a username” to “a brand could use this creator”.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>Funnel</h3>
+      <div class="hbar"><span>Found</span><div class="t"><div class="f" style="width:100%"></div></div><span class="v">34,003</span></div>
+      <div class="hbar"><span>Scraped</span><div class="t"><div class="f" style="width:21%"></div></div><span class="v">7,149</span></div>
+      <div class="hbar"><span>Kept (eligible)</span><div class="t"><div class="f" style="width:9%"></div></div><span class="v">3,056</span></div>
+      <div class="hbar"><span>Brand-ready</span><div class="t"><div class="f" style="width:.5%;background:var(--ok)"></div></div><span class="v">77</span></div>
+      <div class="hbar"><span>Verified by creator</span><div class="t"><div class="f" style="width:0"></div></div><span class="v">0</span></div>
+      <p class="cap">All 6,693 creator rows are “unverified”. The claim and verify flow hasn't been built.</p>
+    </div>
+    <div class="card">
+      <h3>Why profiles were dropped</h3>
+      <div class="hbar"><span>Follower range</span><div class="t"><div class="f" style="width:100%;background:var(--bar2)"></div></div><span class="v">1,806</span></div>
+      <div class="hbar"><span>Gone / restricted</span><div class="t"><div class="f" style="width:2.5%;background:var(--bar2)"></div></div><span class="v">45</span></div>
+      <div class="hbar"><span>Business &gt;50K</span><div class="t"><div class="f" style="width:2.2%;background:var(--bar2)"></div></div><span class="v">39</span></div>
+      <div class="hbar"><span>Old business rule</span><div class="t"><div class="f" style="width:2%;background:var(--bar2)"></div></div><span class="v">36</span></div>
+      <div class="hbar"><span>News / official</span><div class="t"><div class="f" style="width:1.6%;background:var(--bar2)"></div></div><span class="v">28</span></div>
+      <div class="hbar"><span>AI persona</span><div class="t"><div class="f" style="width:1.4%;background:var(--bar2)"></div></div><span class="v">26</span></div>
+      <p class="cap">Skip reasons from the last 2,000 tasks. Most drops come from the follower band, which has changed three times.</p>
+    </div>
+    <div class="card">
+      <h3>Capture quality (9,680 visits)</h3>
+      <div class="hbar"><span>Complete</span><div class="t"><div class="f" style="width:25%;background:var(--ok)"></div></div><span class="v">1,021</span></div>
+      <div class="hbar"><span>Partial</span><div class="t"><div class="f" style="width:50%;background:var(--warn)"></div></div><span class="v">2,062</span></div>
+      <div class="hbar"><span>Failed</span><div class="t"><div class="f" style="width:61%;background:var(--bad)"></div></div><span class="v">2,483</span></div>
+      <div class="hbar"><span>Quarantined</span><div class="t"><div class="f" style="width:100%;background:var(--bar2)"></div></div><span class="v">4,096</span></div>
+      <p class="cap">Only 1 visit in 9 is complete. “Quarantined” mostly means ineligible, but “partial” and “failed” are worth breaking down.</p>
+    </div>
+    <div class="card">
+      <h3>Kept creators by niche (top 10)</h3>
+      <div class="hbar"><span>Uncategorised</span><div class="t"><div class="f" style="width:100%;background:var(--warn)"></div></div><span class="v">284</span></div>
+      <div class="hbar"><span>Books</span><div class="t"><div class="f" style="width:65%"></div></div><span class="v">184</span></div>
+      <div class="hbar"><span>Weddings</span><div class="t"><div class="f" style="width:52%"></div></div><span class="v">148</span></div>
+      <div class="hbar"><span>Food</span><div class="t"><div class="f" style="width:50%"></div></div><span class="v">143</span></div>
+      <div class="hbar"><span>Beauty</span><div class="t"><div class="f" style="width:48%"></div></div><span class="v">136</span></div>
+      <div class="hbar"><span>Fashion</span><div class="t"><div class="f" style="width:44%"></div></div><span class="v">126</span></div>
+      <div class="hbar"><span>Sports</span><div class="t"><div class="f" style="width:43%"></div></div><span class="v">121</span></div>
+      <div class="hbar"><span>Travel</span><div class="t"><div class="f" style="width:40%"></div></div><span class="v">115</span></div>
+      <div class="hbar"><span>Photography</span><div class="t"><div class="f" style="width:39%"></div></div><span class="v">112</span></div>
+      <div class="hbar"><span>Parenting</span><div class="t"><div class="f" style="width:39%"></div></div><span class="v">112</span></div>
+      <p class="cap">Counted from 2,920 kept creators scraped today. The scraper uses 36 niches, but brand chat search only understands 8, so it can't find “books” or “weddings”.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <h3>What scale is realistic</h3>
+    <p style="margin:6px 0 0">On 5 Oct the system kept about <b>170 creators per running hour</b>. The README still mentions a target of <b>1,000,000</b> profiles. At today's rate that is about 245 days of non-stop running on one laptop and one Instagram account. 10,000 is about 2.5 days, and 50,000 is about 12 days. The target needs to be chosen deliberately (see Decision 3).</p>
+  </div>
+</section>
+
+<section id="plan">
+  <h2>Plan vs reality</h2>
+  <p class="sub"><code>plan.md</code> was last edited on 26 Sep. The code took a different and simpler path, and the plan was never updated. That gap is the main reason the project feels hard to follow.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Plan phase</th><th>What the plan says</th><th>What exists</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>0 · Policy</td><td>Sources, retention, opt-out, cohort, taxonomy, KPIs</td><td>Decided in code, not on paper. The band and taxonomy changed several times.</td><td><span class="pill p-warn">Implicit</span></td></tr>
+      <tr><td>1 · Foundation</td><td>TS monorepo, <code>packages/database</code>, Zod types</td><td>Python package with SQLite schema in <code>store.py</code> and <code>runtime/tasks.py</code></td><td><span class="pill p-n">Replaced</span></td></tr>
+      <tr><td>2 · Collection</td><td>Browser provider, checkpointed captures, metrics, eligibility</td><td>Built, and it's the strongest part: immutable snapshots, resumable captures, eligibility, features</td><td><span class="pill p-ok">Done</span></td></tr>
+      <tr><td>3 · Operations</td><td>Queue, retries, health, kill switch, dashboards, review queue</td><td>Queue, retries, pacing, auth pause, watchdog, ops dashboard. No human review queue.</td><td><span class="pill p-warn">Mostly</span></td></tr>
+      <tr><td>4 · Backend</td><td>Express API, auth, claim, campaigns, quotes, contracts</td><td>Internal read API only. No auth, users, claims or campaigns.</td><td><span class="pill p-bad">Not started</span></td></tr>
+      <tr><td>5 · Frontend</td><td>Next.js app for brands, creators and admins</td><td>Internal ops and search dashboard, single user, localhost</td><td><span class="pill p-warn">Internal only</span></td></tr>
+      <tr><td>6 · Deploy</td><td>Docker, CI, secrets, backups, monitoring</td><td>Runs on one laptop. One manual backup. No CI. No version control for the project.</td><td><span class="pill p-bad">Not started</span></td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="issues">
+  <h2>Problems found</h2>
+  <p class="sub">Ordered by how much they cost us now. Red items lose data or work; amber items slow us down or mislead; grey items are cleanup.</p>
+
+  <div class="issue bad"><div class="sev"></div><div class="body"><div class="top"><span class="pill p-bad">Critical</span><h3>The watchdog can't see a stalled scraper</h3></div>
+    <p>The stall check uses the newest finished task of any type. While the sourcer keeps finishing tasks, a dead scraper looks healthy. Its heartbeat also keeps beating while all 8 tabs hang.</p>
+    <div class="ev">watchdog.py:97 · SELECT MAX(finished_at) FROM tasks · 8 leases expired 70 min ago, never reclaimed</div></div></div>
+
+  <div class="issue warn"><div class="sev"></div><div class="body"><div class="top"><span class="pill p-warn">Half fixed</span><h3>Version control is fixed; database backups are not</h3></div>
+    <p><span class="done">Fixed 6 Oct:</span> microIndia has its own git repo, with commits as checkpoints. VS Code no longer picks up the empty home-folder repo. Still open: the 224 MB database has one manual backup. A nightly backup worker is in Phase 2.</p>
+    <div class="ev">data/backups has 1 file (5 Oct)</div></div></div>
+
+  <div class="issue bad"><div class="sev"></div><div class="body"><div class="top"><span class="pill p-bad">High</span><h3>Network blips permanently fail work</h3></div>
+    <p>A short disconnect used up all 3 retries in seconds. 207 profiles, 27 searches and 24 similar lookups are marked failed and won't be retried on their own. Offline errors should wait for the network instead of counting as attempts.</p>
+    <div class="ev">261 tasks · “ERR_INTERNET_DISCONNECTED” · fixable with “Retry all” on Pipeline</div></div></div>
+
+  <div class="issue warn"><div class="sev"></div><div class="body"><div class="top"><span class="pill p-warn">High</span><h3>The target creator keeps changing</h3></div>
+    <p>The follower band went from 10K–100K to 1K–100K to 500–1M in one day, while the current focus is 500–5K. The constants, insights and sourcing code each define bands their own way. Creators kept under one rule get judged by another.</p>
+    <div class="ev">constants.py · insights.BANDS · sourcing.SIZE_BANDS · skip reason “Business account (old rule)”</div></div></div>
+
+  <div class="issue warn"><div class="sev"></div><div class="body"><div class="top"><span class="pill p-warn">High</span><h3>Discovery is degrading</h3></div>
+    <p>“Similar accounts” returns “user id not found” for every recent request, and search failed half the time in the last 2 hours. Without discovery the queue still has 27K profiles, but those come from older, broader rules.</p>
+    <div class="ev">sourcer.log · last 2h: search 27 ok / 27 failed · similar 24 / 24 / 32 skipped</div></div></div>
+
+  <div class="issue warn"><div class="sev"></div><div class="body"><div class="top"><span class="pill p-warn">Medium</span><h3>Search and data speak different taxonomies</h3></div>
+    <p>The scraper labels 36 niches. Brand chat search knows 8, and 284 kept creators have no niche. Niche lists exist in five places.</p>
+    <div class="ev">niches.NICHES · intelligence.TOPIC_TERMS / CATEGORY_STEMS · search_ai.CATEGORIES / CATEGORY_WORDS</div></div></div>
+
+  <div class="issue warn"><div class="sev"></div><div class="body"><div class="top"><span class="pill p-warn">Medium</span><h3>A code bug quietly retries profiles</h3></div>
+    <p>“TypeError: unsupported operand type(s) for -: 'float' and 'str'” appears on several profiles, likely a date stored as text being subtracted from a number.</p>
+    <div class="ev">scraper.log · e.g. thegreatkababfactory_tgkf, sonymusicindia</div></div></div>
+
+  <div class="issue low"><div class="sev"></div><div class="body"><div class="top"><span class="pill p-n">Cleanup</span><h3>Two systems, leftover files</h3></div>
+    <p><span class="done">Docs fixed 6 Oct:</span> the plan was archived and the READMEs rewritten. Still open: about 2,300 lines of legacy code, with 4 test files still covering them. There are 6 dead PID files, stray <code>ar</code> and <code>o</code> files, and a 52K-line old cohort log. In <code>api.py</code> (1,177 lines) the scraper imports private helpers from the API. In the dashboard, components are duplicated and two queries poll the same summary.</p></div></div>
+</section>
+
+<section id="road">
+  <h2>Roadmap</h2>
+  <p class="sub">The approved plan, in order. Phases 2 and 3 run in parallel through different agents. Scraping stays on throughout.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Phase</th><th>What it delivers</th><th>Owner</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td><b>0 · Foundation</b></td><td>Own git repo, docs tree (state, story, decisions, architecture), READMEs rewritten, <code>CLAUDE.md</code> rules, status module</td><td>—</td><td><span class="pill p-ok">Done</span></td></tr>
+      <tr><td><b>1 · Agents and skills</b></td><td>6 project agents, 9 skills, 3 guard hooks, this page published from <code>docs/GOVERNING.html</code></td><td>—</td><td><span class="pill p-ok">Done</span></td></tr>
+      <tr><td><b>2 · Rock-solid collection</b></td><td>Per-kind stall detection, expired-lease reclaim, offline means pause, retry the 261 failures, fix the float-minus-string bug, nightly backup, delete about 2,300 legacy lines, one home for bands and niches</td><td>scraper-ops</td><td><span class="pill p-warn">Next</span></td></tr>
+      <tr><td><b>3 · Insight engine</b></td><td>ffmpeg + Whisper on the Mac; <code>media.reel</code> → <code>analyze.reel</code> (Sonnet) → <code>analyze.creator</code> (Opus); at least 15 reels per creator, fully cached; <code>llm.py</code>; fix the language and topic bugs; golden set + evals</td><td>insights-engineer · data-quality</td><td><span class="pill p-warn">Next</span></td></tr>
+      <tr><td><b>4 · Brand product</b></td><td>Personas and the core loop, then Brief, Discover, Dossier, Compare, Shortlists and Ask AI; a new design system (two directions to pick from); ops moved under <code>/ops</code></td><td>product-engineer · brand-experience</td><td><span class="pill p-n">After 3 starts</span></td></tr>
+      <tr><td><b>5 · Local finder</b></td><td>Keep small businesses we currently discard; <code>source.local</code> by service × city; <code>business_cards</code>; a “Find a local business” page</td><td>product-engineer · scraper-ops · insights-engineer</td><td><span class="pill p-n">Planned</span></td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="decide">
+  <h2>Decisions</h2>
+  <p class="sub">Settled decisions are logged in <code>docs/product/DECISIONS.md</code>. Open ones are below; my recommendation is highlighted.</p>
+  <div class="card" style="margin-bottom:12px"><h3>Settled on 6 Oct</h3>
+    <p class="cap" style="margin-top:6px"><span class="done">✓</span> Insight and the brand product before more scraping · <span class="done">✓</span> Claude CLI headless (Sonnet for reels, Opus for dossiers) · <span class="done">✓</span> Full video and audio, at least 15 reels per creator, everything cached · <span class="done">✓</span> D2C brands and agencies, equally · <span class="done">✓</span> The dashboard becomes the brand product · <span class="done">✓</span> Local finder as a second track · <span class="done">✓</span> Own git repo; commits are checkpoints</p></div>
+  <div class="dec">
+    <div class="card"><h3>Which creators do we keep?</h3>
+      <p>The follower band has been 10K–100K, 1K–100K, 500–1M and 500–5K in one day. The insight engine spends about 15 Claude calls per kept creator, so this decides where that effort goes.</p>
+      <div class="opts"><span class="rec">Keep 1K–100K, analyse 10K–100K first</span><span>10K–100K only</span><span>500–1M, filter later</span></div></div>
+    <div class="card"><h3>How big does the dataset need to be?</h3>
+      <p>At about 170 kept creators per running hour, 10K takes days and 1M takes most of a year.</p>
+      <div class="opts"><span class="rec">10K deeply analysed, then decide</span><span>50K across all niches</span><span>1M (needs a different setup)</span></div></div>
+    <div class="card"><h3>Which cities and services start the Local finder?</h3>
+      <p>Starting narrow makes results feel complete in that slice.</p>
+      <div class="opts"><span class="rec">Home bakers, mehendi, boutiques in Indore, Pune, Lucknow</span><span>Your pick</span></div></div>
+  </div>
+</section>
+
+<footer>Sources: data/microindia.sqlite3 (read-only), run/*.log, run/health.json, docs/, apps/scraper/src, apps/dashboard/src · live API at 127.0.0.1:8787 · figures as of 01:45 IST, 6 Oct 2026</footer>
+</div>
+
+<script>
+(function(){
+  var data=[[0,0],[1,0],[2,0],[3,179],[4,348],[5,147],[6,0],[7,0],[8,0],[9,0],[10,0],[11,0],[12,198],[13,231],[14,218],[15,303],[16,252],[17,665],[18,1020],[19,562],[20,1033],[21,1220],[22,0],[23,0]];
+  var svg=document.getElementById('hourly'); if(!svg) return;
+  var NS='http://www.w3.org/2000/svg', W=720,H=220,L=44,R=10,T=12,B=28, max=1400;
+  var cw=(W-L-R)/24, y=function(v){return T+(H-T-B)*(1-v/max)};
+  function el(n,a,t){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;svg.appendChild(e);return e}
+  [0,350,700,1050,1400].forEach(function(v){
+    el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:'var(--line)','stroke-width':1});
+    el('text',{x:L-6,y:y(v)+4,'text-anchor':'end'},v.toLocaleString());
+  });
+  el('rect',{x:L+cw*6,y:T,width:cw*6,height:H-T-B,fill:'var(--sunk)'});
+  el('rect',{x:L+cw*22,y:T,width:cw*2,height:H-T-B,fill:'var(--bad-soft)'});
+  el('text',{x:L+cw*9,y:T+16,'text-anchor':'middle'},'Mac asleep');
+  el('text',{x:L+cw*23,y:T+16,'text-anchor':'middle'},'stalled');
+  data.forEach(function(d){
+    var h=d[0],v=d[1];
+    if(v>0){var r=el('rect',{x:L+cw*h+3,y:y(v),width:cw-6,height:y(0)-y(v),rx:2,fill:h===21?'var(--accent)':'var(--bar2)'});
+      var t=document.createElementNS(NS,'title');t.textContent=String(h).padStart(2,'0')+':00 · '+v+' profiles';r.appendChild(t);}
+    if(h%3===0) el('text',{x:L+cw*h+cw/2,y:H-8,'text-anchor':'middle'},String(h).padStart(2,'0'));
+  });
+  el('text',{x:L+cw*21.5,y:y(1220)-6,'text-anchor':'middle',style:'fill:var(--fg)'},'1,220');
+})();
+</script>
