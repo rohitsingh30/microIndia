@@ -8,7 +8,7 @@ A brand describes who it needs in plain words and gets a shortlist of real India
 A second track, the **Local finder**, applies the same engine to small businesses: people find a local business on Instagram for a specific task in their area.
 
 ## The problem
-- Indian brands increasingly spend on micro-creators (roughly 5K–100K followers), but finding the right ones is manual. Planners scroll Instagram, ask for media kits and trust follower counts.
+- Indian brands increasingly spend on smaller creators (anything below the famous tier, roughly up to 100K followers), but finding the right ones is manual. Planners scroll Instagram, ask for media kits and trust follower counts.
 - Existing discovery tools sell follower filters and vanity engagement numbers. They can't say *what a creator actually makes*, *how it lands*, *whether they have done paid work well*, or *why this creator fits this brief*.
 - Agencies redo this research for every client and every campaign.
 
@@ -72,9 +72,9 @@ A separate feature with its own entry point in the app.
 
 ## Roadmap (product view)
 1. **Now:** the insight engine. Reel analysis (video, audio and text) gives reel analyses, which give creator dossiers. Fix the corrupted language and topic signals.
-2. **Next:** the brand app: Brief, Discover, Dossier, Compare, Shortlists, Ask AI, export. Ops moves to `/ops`.
-3. **Local finder (parallel track):** keep the small businesses we currently discard, source by service × city, generate business cards, and ship a "Find a local business" entry in the app. Start with 2–3 categories in 2–3 cities (for example home bakers, mehendi, boutiques in Indore, Pune and Lucknow), then widen.
-4. **Then:** pilot with 3–5 real brands or agencies. Measure time to shortlist, picks accepted and outreach sent.
+2. **Next:** the brand app: Brief, Discover, Creator page, Compare, Shortlists, Ask AI, export. Ops moves to `/ops`. Spec: `specs/brand-app.md`.
+3. **Local finder (parallel track):** profile every small business the scraper meets (starting with the ~880 we already discarded), generate business cards, and ship a "Find a local business" entry in the app. There's no launch slice: coverage grows with scraping, and the app is honest about where it's deep. Spec: `specs/local-finder.md`.
+4. **Then:** put it in front of the first real brands and agencies. Measure time to shortlist, picks accepted and outreach sent.
 5. **Later:** creator claim and verify (unlocks audience data and opt-out), brand accounts and logins, pricing signals, campaign tracking.
 
 ## Product principles
@@ -87,4 +87,4 @@ A separate feature with its own entry point in the app.
 ## Open product questions
 - How should we price it: per seat, per shortlist or per campaign?
 - Do brands want us to contact creators, or only to find them?
-- Which 3–5 pilot brands or agencies do we approach first?
+- Who are the first real brands or agencies to use it, and how do they get access?

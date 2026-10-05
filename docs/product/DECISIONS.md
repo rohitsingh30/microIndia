@@ -4,6 +4,18 @@ Append-only, newest first. Each entry: date, decision, why, who decided. The pro
 
 ---
 
+## 2026-10-06 · Owner answers on the specs
+- **Local finder has no launch slice.** No city or service preference: every small business the scraper meets gets profiled properly, and coverage grows as collection runs. The app shows honestly where it's deep. *Why:* build the dataset as we go instead of steering sourcing toward chosen cities.
+- **Creator size is a wide range with an upper cap only.** The Brief defaults to any size up to 100K. There's no meaningful floor, and the cap only keeps out accounts that are too famous or already very big. Brands can change it.
+- **On-demand analysis and sourcing are uncapped.** "Analyse this creator" and "Find more for this brief" queue Claude analysis and scraping at high priority with no daily cap.
+- **There are no pilot brands yet.** The app stays local for the owner. No access, tunnel or login work until a real brand or agency is lined up. The roadmap's "pilot with 3–5 brands" was an assumption, not a plan.
+- **By:** Rohit
+
+## 2026-10-06 · AI is a first-class surface of the brand app; ship 0→1 fast
+- **Decision:** brands get what they need by talking to our AI: they write a brief and get a shortlist, refine it in plain words, and Ask AI about a creator or a shortlist. It's a primary surface, not a helper tucked into one page. Build the smallest useful version first and widen from there.
+- **Why:** the current UI "looks childish" and makes the brand do the research; the value is the answer and its evidence. Specs: `specs/brand-app.md` (Brief, Ask AI) and `specs/local-finder.md`.
+- **By:** Rohit
+
 ## 2026-10-06 · Second product track: Local finder for small businesses
 - **Decision:** add a separate feature where people find a local small business on Instagram for a specific task in their area: "custom birthday cake in Indore this weekend", "bridal mehendi artist in Pune", "home tutor for class 10 maths in Lucknow".
 - **Why:** much of India's small-business economy (home bakers, boutiques, salons, tailors, decorators, tutors) lives on Instagram and is hard to search by task and area. The scraper already meets these accounts every day and currently discards them as "business" or "non-human".
