@@ -239,3 +239,18 @@ class SharedHelpersTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReadOnlySnapshotTest(unittest.TestCase):
+    def test_read_only_mode_refuses_every_write(self):
+        from unittest import mock
+        from microindia_scraper.api import server
+        handler = server.Handler.__new__(server.Handler)
+        sent = {}
+        handler.path = "/api/actions/seed"
+        handler.headers = {}
+        handler._json = lambda payload, status=200: sent.update(payload=payload, status=status)
+        with mock.patch.object(server, "READ_ONLY", True):
+            handler._dispatch("POST")
+        self.assertEqual(sent["status"], 403)
+        self.assertIn("read-only", sent["payload"]["error"])

@@ -33,3 +33,6 @@ qa-shots/
 
 # Editor
 .vscode/
+
+# Snapshot build output (uploaded as a release asset, never committed)
+deploy/out/

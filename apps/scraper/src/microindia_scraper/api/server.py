@@ -24,6 +24,8 @@ from .ops import OpsQueries
 from .repository import CreatorIndex
 
 DEFAULT_DIST = Path(__file__).resolve().parents[4] / "dashboard" / "dist"
+# Hosted snapshot (MICROINDIA_READ_ONLY=1): every POST/PATCH/DELETE is refused, GETs serve the snapshot.
+READ_ONLY = os.environ.get("MICROINDIA_READ_ONLY") == "1"
 MAX_BODY = 1024 * 1024  # 1 MB
 
 
@@ -106,6 +108,8 @@ class Handler(BaseHTTPRequestHandler):
         multi = parse_qs(parsed.query)
         path = parsed.path
         try:
+            if method != "GET" and READ_ONLY:
+                raise router.HttpError(403, "This is a read-only snapshot of microIndia; changes are disabled here.")
             body = None if method == "GET" else self._read_body()
             found = router.resolve(method, path)
             if found is None:

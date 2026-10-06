@@ -1,0 +1,5 @@
+*
+!apps/scraper/src/**
+!apps/dashboard/dist/**
+!deploy/out/microindia-snapshot.sqlite3.gz
+**/__pycache__
