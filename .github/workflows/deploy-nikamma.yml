@@ -1,0 +1,58 @@
+name: Deploy code to Nikamma
+
+# Push to "hosting" = deploy. Builds the dashboard, bundles it with the API package and uploads the
+# bundle to https://microindia.nikamma.in/__deploy/code (token in the MICROINDIA_DEPLOY_TOKEN secret).
+# The server verifies the bundle, switches to it and restarts the app. Data is pushed separately from
+# the laptop every 15 minutes (deploy/push.py snapshot). No container image is built.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [hosting]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-nikamma
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/dashboard/package-lock.json
+
+      - name: Build dashboard
+        working-directory: apps/dashboard
+        run: npm ci --no-audit --no-fund && npm run build
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Test the API package
+        working-directory: apps/scraper
+        env:
+          MICROINDIA_ALLOW_NO_BASELINE: '1'
+        run: PYTHONPATH=src python -m unittest tests.test_api tests.test_api_server
+
+      - name: Push code bundle
+        env:
+          MICROINDIA_DEPLOY_TOKEN: ${{ secrets.MICROINDIA_DEPLOY_TOKEN }}
+        run: python3 deploy/push.py code
+
+      - name: Verify
+        env:
+          MICROINDIA_DEPLOY_TOKEN: ${{ secrets.MICROINDIA_DEPLOY_TOKEN }}
+        run: |
+          python3 deploy/push.py status | tee -a "$GITHUB_STEP_SUMMARY"
+          for i in $(seq 1 30); do curl -fs -o /dev/null https://microindia.nikamma.in/ && break; sleep 5; done
+          curl -fs https://microindia.nikamma.in/ | grep -qi '<html'

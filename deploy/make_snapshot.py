@@ -3,8 +3,9 @@
     python3 deploy/make_snapshot.py [--source apps/scraper/data/microindia.sqlite3] [--out deploy/out]
 
 Copies the live database with SQLite's backup API (safe while workers write), drops tables the
-dashboard never reads (model cache, legacy collection tables), vacuums, and gzips the result to
-deploy/out/microindia-snapshot.sqlite3.gz. Upload it with deploy/publish_snapshot.sh.
+dashboard never reads (model cache, legacy collection tables), strips raw page text, raw Instagram
+API responses and raw model outputs, vacuums, and gzips the result to
+deploy/out/microindia-snapshot.sqlite3.gz. deploy/push.py uploads it to Nikamma.
 """
 
 from __future__ import annotations
@@ -36,6 +37,16 @@ def build(source: str, out_dir: str) -> str:
         src.close()
     for table in DROP:
         dst.execute(f"DROP TABLE IF EXISTS {table}")
+    # Strip what the dashboard never shows: raw page text (it contains other people's comments),
+    # raw Instagram API responses and raw model envelopes. The parsed fields the site uses stay.
+    tables = {row[0] for row in dst.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    for table in ("content_snapshots", "post_observations"):
+        if table in tables:
+            dst.execute(f"UPDATE {table} SET payload = json_remove(payload, '$.text_content') "
+                        f"WHERE json_extract(payload, '$.text_content') IS NOT NULL")
+    for table, column in (("reel_media", "raw_json"), ("reel_analyses", "raw"), ("creator_dossiers", "raw")):
+        if table in tables:
+            dst.execute(f"UPDATE {table} SET {column} = NULL")
     dst.execute("INSERT OR REPLACE INTO runtime_flags(name, value, updated_at) VALUES ('snapshot_at', ?, ?)",
                 (time.strftime("%Y-%m-%dT%H:%M:%S%z"), time.time()))
     dst.commit()
