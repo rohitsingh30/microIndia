@@ -74,3 +74,49 @@ class WatchdogDecisionTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ChromeHealthTest(unittest.TestCase):
+    def setUp(self):
+        self.state = WatchdogState(started_at=0.0)
+
+    def test_pages_not_loading_restarts_chrome_not_the_runners(self):
+        progress = {"scraper": RunnerProgress(due=30000, last_finished_at=1000, expired_leases=0)}
+        actions = decide(obs(5000, progress=progress, nav_timeouts=95, nav_successes=0), self.state, Policy())
+        self.assertEqual([a["worker"] for a in actions], ["chrome"])
+        self.assertIn("pages not loading", actions[0]["reason"])
+
+    def test_some_successes_mean_chrome_is_fine(self):
+        self.assertEqual(decide(obs(5000, nav_timeouts=20, nav_successes=3), self.state, Policy()), [])
+
+    def test_offline_is_not_chromes_fault(self):
+        self.assertEqual(decide(obs(5000, nav_timeouts=50, nav_successes=0, network_down="ERR_INTERNET_DISCONNECTED"),
+                                self.state, Policy()), [])
+
+    def test_updated_chrome_is_restarted_once_then_cools_down(self):
+        actions = decide(obs(5000, chrome_running="154.0.8037.93", chrome_installed="154.0.8037.98"), self.state, Policy())
+        self.assertIn("updated on disk", actions[0]["reason"])
+        self.assertEqual(decide(obs(5060, chrome_running="154.0.8037.93", chrome_installed="154.0.8037.98"),
+                                self.state, Policy()), [])
+        self.assertEqual(decide(obs(9000, chrome_running="154.0.8037.98", chrome_installed="154.0.8037.98"),
+                                self.state, Policy()), [])
+
+
+class AlertsTest(unittest.TestCase):
+    def test_alert_after_30_minutes_then_hourly_and_reset_when_fixed(self):
+        from microindia_scraper.watchdog import Alerts
+        sent = []
+        alerts = Alerts()
+        send = lambda title, message: sent.append(message)  # noqa: E731
+        issue = "runner scraper stalled: 30000 tasks it may take, no progress for 40 min"
+        alerts.update([issue], 0, send)
+        alerts.update([issue], 1700, send)
+        self.assertEqual(sent, [])
+        alerts.update([issue], 1800, send)
+        alerts.update([issue], 3000, send)
+        self.assertEqual(len(sent), 1)
+        alerts.update([issue], 5400, send)
+        self.assertEqual(len(sent), 2)
+        alerts.update([], 5500, send)
+        alerts.update([issue], 5600, send)
+        self.assertEqual(len(sent), 2)  # fixed and back: a fresh 30-minute clock

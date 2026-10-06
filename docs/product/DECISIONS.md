@@ -4,6 +4,31 @@ Append-only, newest first. Each entry: date, decision, why, who decided. The pro
 
 ---
 
+## 2026-10-07 · Four continuous loops, optimised with a shared budget
+- **Decision:** microIndia runs four continuous loops: sourcing, scraping, profiling, and product (UI, dashboard and AI retrieval together). Workers do the volume; agents steer and review. A budget allocator shares the Instagram request budget and the Claude budget between the loops. Quality checks, stall alerts and a daily digest run across all of them.
+- **Per loop:**
+  - **Sourcing:** pre-filter before queueing, rank sources by yield, cap the backlog.
+  - **Scraping:** two-stage capture (header first), fetch posts as data, smarter refresh.
+  - **Profiling:** full depth for every creator (at least 15 reels, full video and audio, no cheap tier, no batching), made leaner by fetching posts as data and re-profiling only when something changed.
+  - **Product:** a retrieval test set, small frequent releases, and usage signals feeding priorities.
+- **Order:** Chrome resilience → land reviewed work + eligibility v2 → baseline KPIs → two-stage capture + data fetching → smarter refresh → sourcing yield + backlog cap → allocator + efficiency dashboard → retrieval tests + brand UI.
+- **Working agreement:** one step at a time, before/after numbers shown, big changes wait for the owner's yes.
+- **By:** Rohit
+
+## 2026-10-06 · Creator band 500–250K; Indian diaspora kept as "lives abroad"
+- **Decision:** the dataset keeps creators from 500 to 250K followers. There's no meaningful floor; the cap only drops genuinely big accounts. The Brief defaults to up to 100K, and brands can change it.
+- **Decision:** Indian creators who live abroad ("Malayali in Kuwait", "Indian-American in NYC") are kept as creators, tagged "lives abroad" with the country. Brands can include or exclude them. Non-Indian foreign accounts are still rejected.
+- **By:** Rohit
+
+## 2026-10-06 · Desktop website first; mobile later
+- **Decision:** the product is a desktop website, designed and verified at 1280–1600 px with 1440 as the reference, in light and dark. Narrow screens only need to stay usable (no horizontal scroll, content stacks); phone-specific design comes later. This covers the Local finder too, whose spec and mock were drawn phone-first.
+- **By:** Rohit
+
+## 2026-10-06 · Brand AI runs freely; Brief writes 25 with progressive fill
+- **Decision:** Brand AI (Brief, Ask AI) is on by default. Brand AI and the background reel analyzer share the Claude subscription freely (up to ~4 processes); the analyzer doesn't yield. The Brief ranks 25 creators: ranked cards in about 5 s, reasons filling in batches over about 60–90 s.
+- **Also settled (following earlier decisions):** the Local finder ships every service we see, and uncovered places show whatever exists and log the demand. Small businesses that slipped into the creator pool (~287) move to the Local finder, so "kept creators" drops by that much.
+- **By:** Rohit
+
 ## 2026-10-06 · Visual direction: Casebook, with Ledger's compact mode
 - **Decision:** build the app in direction B, **Casebook** (`docs/design/direction-b.html`).
   - Reel evidence leads every creator card at a size you can judge.

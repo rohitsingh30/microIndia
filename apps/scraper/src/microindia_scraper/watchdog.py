@@ -18,7 +18,50 @@ import sqlite3
 import time
 import urllib.request
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
+
+NAV_WINDOW = 600  # seconds of page-load history judged for "Chrome can't load pages"
+BROWSER_KINDS = ("scrape.profile", "source.search", "source.similar", "media.reel")
+CHROME_APP = os.environ.get("MICROINDIA_CHROME_APP", "/Applications/Google Chrome.app")
+ALERT_AFTER_SECONDS = 1800  # tell the owner when an issue has lasted this long
+ALERT_REPEAT_SECONDS = 3600
+
+
+def notify(title: str, message: str) -> None:
+    """A macOS notification for the owner (no-op elsewhere). Never raises."""
+    import subprocess
+
+    script = f"display notification {json.dumps(message[:200])} with title {json.dumps(title[:60])}"
+    try:
+        subprocess.run(["/usr/bin/osascript", "-e", script], timeout=10, capture_output=True)
+    except Exception:
+        pass
+
+
+class Alerts:
+    """Notify when an issue persists ALERT_AFTER_SECONDS, then at most every ALERT_REPEAT_SECONDS."""
+
+    def __init__(self) -> None:
+        self.first_seen: Dict[str, float] = {}
+        self.last_sent: Dict[str, float] = {}
+
+    def update(self, issues: List[str], now: float, send: Callable[[str, str], None] = notify) -> List[str]:
+        keys = {issue.split(":")[0]: issue for issue in issues}
+        for key in list(self.first_seen):
+            if key not in keys:
+                self.first_seen.pop(key)
+                self.last_sent.pop(key, None)
+        sent = []
+        for key, issue in keys.items():
+            since = self.first_seen.setdefault(key, now)
+            last = self.last_sent.get(key)
+            if now - since >= ALERT_AFTER_SECONDS and (last is None or now - last >= ALERT_REPEAT_SECONDS):
+                minutes = int((now - since) // 60)
+                send("microIndia needs attention", f"{issue} (for {minutes} min)")
+                self.last_sent[key] = now
+                sent.append(issue)
+        return sent
+
 
 @dataclass
 class RunnerProgress:
@@ -39,6 +82,11 @@ class Observation:
     auth_blocked: Optional[str]
     progress: Dict[str, RunnerProgress] = field(default_factory=dict)
     network_down: Optional[str] = None
+    # Chrome itself: page loads in the last NAV_WINDOW seconds, and running vs installed version.
+    nav_timeouts: int = 0
+    nav_successes: int = 0
+    chrome_running: Optional[str] = None
+    chrome_installed: Optional[str] = None
 
 
 @dataclass
@@ -50,6 +98,8 @@ class Policy:
     # Longer than the runner's own stuck check (120s) + housekeeping + hard exit (60s), so a runner
     # gets to exit by itself before the watchdog restarts it.
     lease_grace_seconds: float = 300.0
+    # Chrome answers CDP but no tab can load a page (6 Oct: 13 hours after an in-place update).
+    nav_timeouts_before_restart: int = 8
 
 
 @dataclass
@@ -77,10 +127,19 @@ def decide(obs: Observation, state: WatchdogState, policy: Policy = Policy()) ->
     if state.cdp_failures >= policy.cdp_failures_before_restart and not cooling("chrome"):
         actions.append({"worker": "chrome", "reason": f"CDP unreachable {state.cdp_failures} checks in a row"})
         state.cdp_failures = 0
+    elif (obs.cdp_ok and obs.nav_timeouts >= policy.nav_timeouts_before_restart and obs.nav_successes == 0
+          and not obs.network_down and not cooling("chrome")):
+        actions.append({"worker": "chrome",
+                        "reason": f"pages not loading: {obs.nav_timeouts} timeouts, 0 successes in {NAV_WINDOW // 60} min"})
+    elif (obs.cdp_ok and obs.chrome_running and obs.chrome_installed and obs.chrome_running != obs.chrome_installed
+          and not cooling("chrome")):
+        actions.append({"worker": "chrome",
+                        "reason": f"Chrome updated on disk ({obs.chrome_running} running, {obs.chrome_installed} installed)"})
+    chrome_restart = any(action["worker"] == "chrome" for action in actions)
     for worker, beat in obs.heartbeats.items():
         if beat is not None and obs.now - beat > policy.stale_heartbeat_seconds and not cooling(worker):
             actions.append({"worker": worker, "reason": f"no heartbeat for {obs.now - beat:.0f}s"})
-    paused = obs.auth_blocked or obs.network_down or not obs.cdp_ok
+    paused = obs.auth_blocked or obs.network_down or not obs.cdp_ok or chrome_restart
     for worker, progress in sorted(obs.progress.items()):
         if paused or acting(worker) or cooling(worker):
             continue
@@ -97,9 +156,19 @@ def decide(obs: Observation, state: WatchdogState, policy: Policy = Policy()) ->
     return actions
 
 
-def observe(database: str, cdp_url: str, *, lease_grace_seconds: float = Policy.lease_grace_seconds) -> Observation:
+def chrome_installed_version(app: str = CHROME_APP) -> Optional[str]:
+    """Version the Chrome bundle on disk would start (macOS keeps it as Versions/Current)."""
     try:
-        urllib.request.urlopen(f"{cdp_url}/json/version", timeout=5).read()
+        return os.readlink(os.path.join(app, "Contents/Frameworks/Google Chrome Framework.framework/Versions/Current"))
+    except OSError:
+        return None
+
+
+def observe(database: str, cdp_url: str, *, lease_grace_seconds: float = Policy.lease_grace_seconds) -> Observation:
+    chrome_running = None
+    try:
+        version = json.loads(urllib.request.urlopen(f"{cdp_url}/json/version", timeout=5).read())
+        chrome_running = str(version.get("Browser") or "").split("/")[-1] or None
         cdp_ok = True
     except Exception:
         cdp_ok = False
@@ -138,7 +207,22 @@ def observe(database: str, cdp_url: str, *, lease_grace_seconds: float = Policy.
             pass
     finally:
         connection.close()
-    return Observation(now, cdp_ok, heartbeats, last, int(queued), flag, progress, network)
+    nav_timeouts = nav_successes = 0
+    connection = sqlite3.connect(database, timeout=10)
+    try:
+        nav_timeouts = connection.execute(
+            "SELECT COUNT(*) FROM tasks WHERE updated_at > ? AND last_error LIKE '%Page.goto: Timeout%'",
+            (now - NAV_WINDOW,)).fetchone()[0]
+        marks = ",".join("?" for _ in BROWSER_KINDS)
+        nav_successes = connection.execute(
+            f"SELECT COUNT(*) FROM tasks WHERE finished_at > ? AND state IN ('done','skipped') AND kind IN ({marks})",
+            (now - NAV_WINDOW, *BROWSER_KINDS)).fetchone()[0]
+    except sqlite3.OperationalError:
+        pass
+    finally:
+        connection.close()
+    return Observation(now, cdp_ok, heartbeats, last, int(queued), flag, progress, network,
+                       int(nav_timeouts), int(nav_successes), chrome_running, chrome_installed_version())
 
 
 def restart_worker(state_paths: Any, worker: str) -> Optional[int]:
@@ -255,12 +339,15 @@ def main() -> None:
     args.supervisor_state = args.supervisor_state or ["run/local-supervisor-state.json",
                                                       "run/insight-supervisor-state.json"]
     state = WatchdogState()
+    alerts = Alerts()
     recent: List[Dict[str, Any]] = []
     cycle = 0
     while True:
         cycle += 1
         obs = observe(args.database, args.cdp_url)
         for action in decide(obs, state):
+            if action["worker"] == "chrome":
+                notify("microIndia restarted Chrome", action["reason"])
             pid = restart_worker(args.supervisor_state, action["worker"])
             event = {"ts": obs.now, "action": "restart", "pid": pid, **action}
             recent.append(event)
@@ -287,6 +374,14 @@ def main() -> None:
             record_metrics(args.database, sample_system(args.cdp_url, args.database), obs.now)
         except Exception as exc:
             print(json.dumps({"event": "metrics_error", "error": repr(exc)}), flush=True)
+        try:
+            from .status import snapshot
+
+            issues = snapshot(args.database, os.path.dirname(args.health_file) or "run")["issues"]
+            for issue in alerts.update(issues, time.time()):
+                print(json.dumps({"event": "watchdog_alert", "issue": issue}), flush=True)
+        except Exception as exc:
+            print(json.dumps({"event": "alert_error", "error": repr(exc)}), flush=True)
         time.sleep(args.interval)
 
 
